@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"custom-database/config"
 	"custom-database/internal/model"
 	"encoding/gob"
 	"fmt"
@@ -22,19 +23,17 @@ type storageTable struct {
 
 type storage struct {
 	tables map[string]storageTable
-	dir    string // директория для хранения файлов таблиц
+	dir    string
 }
 
-func NewStorage() Storage {
-	// Создаем директорию для хранения файлов таблиц
-	dir := "tables"
-	if err := os.MkdirAll(dir, 0755); err != nil {
+func NewStorage(cfg *config.Config) Storage {
+	if err := os.MkdirAll(cfg.DBPath, 0755); err != nil {
 		panic(fmt.Sprintf("failed to create tables directory: %v", err))
 	}
 
 	return &storage{
 		tables: make(map[string]storageTable),
-		dir:    dir,
+		dir:    cfg.DBPath,
 	}
 }
 
