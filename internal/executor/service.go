@@ -3,7 +3,6 @@ package executor
 import (
 	"custom-database/internal/model"
 	"custom-database/internal/storage"
-	"fmt"
 )
 
 type Executor interface {
@@ -22,15 +21,9 @@ func NewExecutor(storage storage.Storage) Executor {
 }
 
 func (e *executor) CreateTable(command model.Table) error {
-	fmt.Println(command)
-
-	e.storage.CreateTable(command)
-	return nil
+	return e.storage.CreateTable(command)
 }
 
 func (e *executor) InsertInto(command model.Table) error {
-	fmt.Println(command)
-
-	e.storage.InsertInto(command)
-	return nil
+	return e.storage.InsertInto(command)
 }

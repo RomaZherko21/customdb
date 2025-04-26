@@ -7,12 +7,12 @@ import (
 
 type Storage interface {
 	GetTable(name string) storageTable
-	CreateTable(table model.Table)
-	InsertInto(table model.Table)
+	CreateTable(table model.Table) error
+	InsertInto(table model.Table) error
 }
 
 type storageTable struct {
-	data    []interface{}
+	rows    [][]interface{}
 	columns []model.Column
 }
 
@@ -30,13 +30,25 @@ func (s *storage) GetTable(name string) storageTable {
 	return s.tables[name]
 }
 
-func (s *storage) CreateTable(table model.Table) {
+func (s *storage) CreateTable(table model.Table) error {
 	s.tables[table.TableName] = storageTable{
-		data:    nil,
+		rows:    [][]interface{}{},
 		columns: table.Columns,
 	}
+
+	return nil
 }
 
-func (s *storage) InsertInto(table model.Table) {
-	fmt.Println(table)
+func (s *storage) InsertInto(table model.Table) error {
+
+	tableName, ok := s.tables[table.TableName]
+	if !ok {
+		return fmt.Errorf("table %s not found", table.TableName)
+	}
+
+	tableName.rows = append(tableName.rows, table.Rows[0])
+
+	s.tables[table.TableName] = tableName
+
+	return nil
 }

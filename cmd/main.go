@@ -35,7 +35,7 @@ func main() {
 			return
 		}
 
-		err = lexer.ParseInput(input)
+		err = lexer.ParseQuery(input)
 		if err != nil {
 			fmt.Println("Main():", err)
 			continue

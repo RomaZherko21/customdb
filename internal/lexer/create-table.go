@@ -11,13 +11,13 @@ func ParseCreateTableCommand(input string) (model.Table, error) {
 	parts := strings.Split(input, " ")
 
 	if len(parts) <= 2 {
-		return model.Table{}, fmt.Errorf("parseCreateTableCommand(): not enough arguments")
+		return model.Table{}, fmt.Errorf("ParseCreateTableCommand(): not enough arguments")
 	}
 
 	re := regexp.MustCompile(`\((.*)\)`)
 	matches := re.FindStringSubmatch(input)
 	if len(matches) < 1 {
-		return model.Table{}, fmt.Errorf("parseCreateTableCommand(): not found any columns")
+		return model.Table{}, fmt.Errorf("ParseCreateTableCommand(): not found any columns")
 	}
 
 	columns := strings.Split(matches[1], ",")
@@ -28,13 +28,11 @@ func ParseCreateTableCommand(input string) (model.Table, error) {
 	}
 
 	for _, column := range columns {
-		column = strings.TrimSpace(column)
-		column = strings.Trim(column, "()")
-		column = strings.TrimSpace(column)
+		column = trimParentheses(column)
 
 		columnParts := strings.Split(column, " ")
 		if len(columnParts) != 2 {
-			return model.Table{}, fmt.Errorf("parseCreateTableCommand(): invalid column definition")
+			return model.Table{}, fmt.Errorf("ParseCreateTableCommand(): invalid column definition")
 		}
 
 		column := model.Column{

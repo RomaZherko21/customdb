@@ -7,7 +7,7 @@ import (
 )
 
 type Lexer interface {
-	ParseInput(input string) error
+	ParseQuery(input string) error
 }
 
 type lexer struct {
@@ -20,13 +20,13 @@ func NewLexer(exec executor.Executor) Lexer {
 	}
 }
 
-func (l *lexer) ParseInput(input string) error {
+func (l *lexer) ParseQuery(input string) error {
 	if len(input) == 0 {
-		return fmt.Errorf("Lexer(): empty input")
+		return fmt.Errorf("ParseQuery(): empty input")
 	}
 
 	if input[len(input)-1] != SEMICOLON {
-		return fmt.Errorf("Lexer(): command must end with a semicolon")
+		return fmt.Errorf("ParseQuery(): command must end with a semicolon")
 	}
 
 	keyword, err := parseKeyword(input)
@@ -34,25 +34,22 @@ func (l *lexer) ParseInput(input string) error {
 		return err
 	}
 
-	if keyword == CREATE_TABLE {
+	switch keyword {
+	case CREATE_TABLE:
 		result, err := ParseCreateTableCommand(input)
 		if err != nil {
-			return err
+			return fmt.Errorf("ParseQuery(): %w", err)
 		}
 
 		return l.exec.CreateTable(result)
-	}
-
-	if keyword == INSERT_INTO {
+	case INSERT_INTO:
 		result, err := ParseInsertIntoCommand(input)
 		if err != nil {
-			return err
+			return fmt.Errorf("ParseQuery(): %w", err)
 		}
 
 		return l.exec.InsertInto(result)
 	}
-
-	fmt.Println(keyword)
 
 	return nil
 }
