@@ -3,3 +3,5 @@ CREATE TABLE users (id INT, name TEXT);
 INSERT INTO users (id, name) VALUES (1, 'Phil');
 
 INSERT INTO users (id, name) VALUES (2, 'Moris');
+
+SELECT id, name FROM users;

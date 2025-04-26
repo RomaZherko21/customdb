@@ -9,6 +9,7 @@ type Storage interface {
 	GetTable(name string) storageTable
 	CreateTable(table model.Table) error
 	InsertInto(table model.Table) error
+	Select(table model.Table) ([][]interface{}, error)
 }
 
 type storageTable struct {
@@ -51,4 +52,19 @@ func (s *storage) InsertInto(table model.Table) error {
 	s.tables[table.TableName] = tableName
 
 	return nil
+}
+
+func (s *storage) Select(table model.Table) ([][]interface{}, error) {
+	currentTable, ok := s.tables[table.TableName]
+	if !ok {
+		return nil, fmt.Errorf("table %s not found", table.TableName)
+	}
+
+	result := make([][]interface{}, 0)
+
+	for _, row := range currentTable.rows {
+		result = append(result, row)
+	}
+
+	return result, nil
 }
