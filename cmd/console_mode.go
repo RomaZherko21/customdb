@@ -1,0 +1,36 @@
+package main
+
+import (
+	"bufio"
+	"custom-database/internal/lexer"
+	"fmt"
+	"os"
+	"strings"
+)
+
+func runConsoleMode(lexer lexer.Lexer) {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("Добро пожаловать в консоль! Введите 'exit' для выхода.")
+
+	for {
+		fmt.Print("> ")
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Ошибка чтения:", err)
+			continue
+		}
+
+		input = strings.TrimSpace(input)
+
+		if input == "exit" {
+			fmt.Println("До свидания!")
+			return
+		}
+
+		err = lexer.ParseQuery(input)
+		if err != nil {
+			fmt.Println("Main():", err)
+			continue
+		}
+	}
+}

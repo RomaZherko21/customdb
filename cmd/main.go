@@ -1,50 +1,34 @@
 package main
 
 import (
-	"bufio"
 	"custom-database/config"
 	"custom-database/internal/executor"
 	"custom-database/internal/lexer"
 	"custom-database/internal/storage"
-	"fmt"
+	"flag"
 	"log"
-	"os"
-	"strings"
 )
 
 func main() {
-
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatal("Error loading config:", err)
 	}
 
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("Добро пожаловать в консоль! Введите 'exit' для выхода.")
+	mode := flag.String("mode", "console", "Режим работы: console или http")
+	port := flag.String("port", cfg.Port, "Порт для HTTP сервера")
+	flag.Parse()
 
 	storage := storage.NewStorage(cfg)
 	executor := executor.NewExecutor(storage)
 	lexer := lexer.NewLexer(executor)
 
-	for {
-		fmt.Print("> ")
-		input, err := reader.ReadString('\n')
-		if err != nil {
-			fmt.Println("Ошибка чтения:", err)
-			continue
-		}
-
-		input = strings.TrimSpace(input)
-
-		if input == "exit" {
-			fmt.Println("До свидания!")
-			return
-		}
-
-		err = lexer.ParseQuery(input)
-		if err != nil {
-			fmt.Println("Main():", err)
-			continue
-		}
+	switch *mode {
+	case "console":
+		runConsoleMode(lexer)
+	case "http":
+		runHttpServer(lexer, *port)
+	default:
+		log.Fatal("Неизвестный режим работы. Используйте 'console' или 'http'")
 	}
 }
