@@ -7,7 +7,7 @@ import (
 )
 
 type HttpHandlers interface {
-	HandleQuery(c *gin.Context)
+	HandleSqlQuery(c *gin.Context)
 }
 
 type handlers struct {

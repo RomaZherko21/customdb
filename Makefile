@@ -7,3 +7,5 @@ run-http:
 test:
 	go test ./... -v
 
+swag-gen:
+	swag init -g ./cmd/main.go -o ./docs
