@@ -66,6 +66,23 @@ func (s *storage) CreateTable(table model.Table) error {
 }
 
 func (s *storage) InsertInto(table model.Table) error {
+	filename := filepath.Join(s.dir, table.TableName+".bin")
+
+	file, err := os.Open(filename)
+	if err != nil {
+		return fmt.Errorf("failed to open table file: %w", err)
+	}
+	defer file.Close()
+
+	// Декодируем данные из файла
+	var tableData storageTable
+	decoder := gob.NewDecoder(file)
+	if err := decoder.Decode(&tableData); err != nil {
+		return fmt.Errorf("failed to decode table data: %w", err)
+	}
+
+	s.tables[table.TableName] = tableData
+
 	tableName, ok := s.tables[table.TableName]
 	if !ok {
 		return fmt.Errorf("table %s not found", table.TableName)
@@ -76,8 +93,8 @@ func (s *storage) InsertInto(table model.Table) error {
 	s.tables[table.TableName] = tableName
 
 	// Сохраняем обновленную таблицу в файл
-	filename := filepath.Join(s.dir, table.TableName+".bin")
-	file, err := os.Create(filename)
+	filename = filepath.Join(s.dir, table.TableName+".bin")
+	file, err = os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("failed to update table file: %w", err)
 	}
