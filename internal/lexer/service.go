@@ -52,7 +52,10 @@ func (l *lexer) ParseQuery(input string) error {
 			return fmt.Errorf("ParseQuery(): %w", err)
 		}
 
-		return l.exec.Select(result)
+		_, err = l.exec.Select(result)
+		if err != nil {
+			return fmt.Errorf("ParseQuery(): %w", err)
+		}
 	}
 
 	return nil
@@ -74,18 +77,18 @@ func parseKeyword(input string) (KeywordType, error) {
 	parts := strings.Split(input, " ")
 	command := parts[0]
 
-	switch command {
+	switch strings.ToUpper(command) {
 	case "SELECT":
 		return SELECT, nil
 	case "CREATE":
-		subCommand := parts[1]
+		subCommand := strings.ToUpper(parts[1])
 
 		if subCommand == "TABLE" {
 			return CREATE_TABLE, nil
 		}
 		return "", fmt.Errorf("parseKeyword(): unknown command 'CREATE %s'", subCommand)
 	case "INSERT":
-		subCommand := parts[1]
+		subCommand := strings.ToUpper(parts[1])
 		if subCommand == "INTO" {
 			return INSERT_INTO, nil
 		}

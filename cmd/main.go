@@ -26,10 +26,8 @@ func main() {
 			continue
 		}
 
-		// Удаляем символ новой строки
 		input = strings.TrimSpace(input)
 
-		// Проверяем команду выхода
 		if input == "exit" {
 			fmt.Println("До свидания!")
 			return

@@ -9,7 +9,7 @@ import (
 type Executor interface {
 	CreateTable(command model.Table) error
 	InsertInto(command model.Table) error
-	Select(command model.Table) error
+	Select(command model.Table) ([][]interface{}, error)
 }
 
 type executor struct {
@@ -30,12 +30,12 @@ func (e *executor) InsertInto(command model.Table) error {
 	return e.storage.InsertInto(command)
 }
 
-func (e *executor) Select(command model.Table) error {
+func (e *executor) Select(command model.Table) ([][]interface{}, error) {
 	rows, err := e.storage.Select(command)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	fmt.Println(rows)
-	return nil
+	return rows, nil
 }
