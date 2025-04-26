@@ -8,6 +8,7 @@ import (
 
 type Executor interface {
 	CreateTable(command model.Table) error
+	InsertInto(command model.Table) error
 }
 
 type executor struct {
@@ -22,5 +23,14 @@ func NewExecutor(storage storage.Storage) Executor {
 
 func (e *executor) CreateTable(command model.Table) error {
 	fmt.Println(command)
+
+	e.storage.CreateTable(command)
+	return nil
+}
+
+func (e *executor) InsertInto(command model.Table) error {
+	fmt.Println(command)
+
+	e.storage.InsertInto(command)
 	return nil
 }

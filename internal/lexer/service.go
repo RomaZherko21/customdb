@@ -34,14 +34,22 @@ func (l *lexer) ParseInput(input string) error {
 		return err
 	}
 
-	switch keyword {
-	case CREATE_TABLE:
-		createTableCommand, err := ParseCreateTableCommand(input)
+	if keyword == CREATE_TABLE {
+		result, err := ParseCreateTableCommand(input)
 		if err != nil {
 			return err
 		}
 
-		l.exec.CreateTable(createTableCommand)
+		return l.exec.CreateTable(result)
+	}
+
+	if keyword == INSERT_INTO {
+		result, err := ParseInsertIntoCommand(input)
+		if err != nil {
+			return err
+		}
+
+		return l.exec.InsertInto(result)
 	}
 
 	fmt.Println(keyword)

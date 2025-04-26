@@ -5,7 +5,12 @@ type Column struct {
 	Type DataType
 }
 
+type Row struct {
+	Values []interface{}
+}
+
 type Table struct {
 	TableName string
 	Columns   []Column
+	Rows      []Row
 }
