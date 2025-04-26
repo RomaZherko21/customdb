@@ -4,6 +4,7 @@ import (
 	"custom-database/internal/model"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -31,6 +32,7 @@ func ParseInsertIntoCommand(input string) (model.Table, error) {
 		Columns:   []model.Column{},
 		Rows:      [][]interface{}{},
 	}
+	result.Rows = append(result.Rows, []interface{}{})
 
 	for _, column := range columns {
 		column = trimParentheses(column)
@@ -43,8 +45,12 @@ func ParseInsertIntoCommand(input string) (model.Table, error) {
 	for _, value := range values {
 		value = trimParentheses(value)
 
-		result.Rows = append(result.Rows, []interface{}{})
-		result.Rows[0] = append(result.Rows[0], value)
+		val, err := extractValue(value)
+		if err != nil {
+			return model.Table{}, fmt.Errorf("ParseInsertIntoCommand(): invalid value: %s", value)
+		}
+
+		result.Rows[0] = append(result.Rows[0], val)
 	}
 
 	return result, nil
@@ -75,5 +81,33 @@ func extractValues(input string) ([]string, error) {
 
 	values := strings.Split(matches[1], ",")
 
+	for i, value := range values {
+		values[i] = strings.TrimSpace(value)
+	}
+
 	return values, nil
+}
+
+func extractValue(value string) (interface{}, error) {
+	var err error
+
+	if value[0] == '\'' && value[len(value)-1] == '\'' {
+		return value[1 : len(value)-1], nil
+	}
+	if value == "NULL" {
+		return nil, nil
+	}
+	if value == "TRUE" {
+		return true, nil
+	}
+	if value == "FALSE" {
+		return false, nil
+	}
+
+	val, err := strconv.Atoi(value)
+	if err != nil {
+		return nil, fmt.Errorf("extractValue(): invalid value: %s", value)
+	}
+
+	return val, nil
 }
