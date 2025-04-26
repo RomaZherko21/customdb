@@ -27,6 +27,10 @@ func ParseInsertIntoCommand(input string) (model.Table, error) {
 		return model.Table{}, fmt.Errorf("ParseInsertIntoCommand(): not found any values")
 	}
 
+	if len(columns) != len(values) {
+		return model.Table{}, fmt.Errorf("ParseInsertIntoCommand(): mismatched columns and values")
+	}
+
 	result := model.Table{
 		TableName: tableName,
 		Columns:   []model.Column{},
@@ -94,13 +98,13 @@ func extractValue(value string) (interface{}, error) {
 	if value[0] == '\'' && value[len(value)-1] == '\'' {
 		return value[1 : len(value)-1], nil
 	}
-	if value == "NULL" {
+	if strings.ToUpper(value) == "NULL" {
 		return nil, nil
 	}
-	if value == "TRUE" {
+	if strings.ToUpper(value) == "TRUE" {
 		return true, nil
 	}
-	if value == "FALSE" {
+	if strings.ToUpper(value) == "FALSE" {
 		return false, nil
 	}
 
