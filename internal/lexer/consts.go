@@ -21,9 +21,3 @@ const LPAREN = '('
 const RPAREN = ')'
 const COMMA = ','
 const SEMICOLON = ';'
-
-// ColumnType
-type ColumnType string
-
-const INT ColumnType = "INT"
-const TEXT ColumnType = "TEXT"

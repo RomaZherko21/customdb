@@ -1,39 +1,30 @@
 package lexer
 
 import (
-	"errors"
+	"custom-database/internal/model"
+	"fmt"
 	"regexp"
 	"strings"
 )
 
-type Column struct {
-	Name string
-	Type ColumnType
-}
-
-type CreateTableCommand struct {
-	TableName string
-	Columns   []Column
-}
-
-func ParseCreateTableCommand(input string) (CreateTableCommand, error) {
+func ParseCreateTableCommand(input string) (model.Table, error) {
 	parts := strings.Split(input, " ")
 
 	if len(parts) <= 2 {
-		return CreateTableCommand{}, errors.New("parseCreateTableCommand(): not enough arguments")
+		return model.Table{}, fmt.Errorf("parseCreateTableCommand(): not enough arguments")
 	}
 
 	re := regexp.MustCompile(`\((.*)\)`)
 	matches := re.FindStringSubmatch(input)
 	if len(matches) < 1 {
-		return CreateTableCommand{}, errors.New("parseCreateTableCommand(): not found any columns")
+		return model.Table{}, fmt.Errorf("parseCreateTableCommand(): not found any columns")
 	}
 
 	columns := strings.Split(matches[1], ",")
 
-	result := CreateTableCommand{
+	result := model.Table{
 		TableName: parts[2],
-		Columns:   []Column{},
+		Columns:   []model.Column{},
 	}
 
 	for _, column := range columns {
@@ -43,12 +34,12 @@ func ParseCreateTableCommand(input string) (CreateTableCommand, error) {
 
 		columnParts := strings.Split(column, " ")
 		if len(columnParts) != 2 {
-			return CreateTableCommand{}, errors.New("parseCreateTableCommand(): invalid column definition")
+			return model.Table{}, fmt.Errorf("parseCreateTableCommand(): invalid column definition")
 		}
 
-		column := Column{
+		column := model.Column{
 			Name: columnParts[0],
-			Type: ColumnType(columnParts[1]),
+			Type: model.DataType(columnParts[1]),
 		}
 
 		result.Columns = append(result.Columns, column)
