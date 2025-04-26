@@ -1,4 +1,4 @@
-package main
+package mode
 
 import (
 	"bufio"
@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func runConsoleMode(lexer lexer.Lexer) {
+func RunConsoleMode(lexer lexer.Lexer) {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Println("Добро пожаловать в консоль! Введите 'exit' для выхода.")
 
