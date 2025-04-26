@@ -1,4 +1,4 @@
-package mode
+package console_mode
 
 import (
 	"bufio"

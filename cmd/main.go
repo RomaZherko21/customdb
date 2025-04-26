@@ -1,9 +1,11 @@
 package main
 
 import (
-	"custom-database/cmd/mode"
+	"custom-database/cmd/console_mode"
+	"custom-database/cmd/http_mode"
 	"custom-database/config"
 	"custom-database/internal/executor"
+	"custom-database/internal/http/handlers"
 	"custom-database/internal/lexer"
 	"custom-database/internal/storage"
 	"flag"
@@ -16,19 +18,21 @@ func main() {
 		log.Fatal("Error loading config:", err)
 	}
 
-	modeArg := flag.String("mode", "console", "Режим работы: console или http")
-	portArg := flag.String("port", cfg.Port, "Порт для HTTP сервера")
+	mode := flag.String("mode", "console", "Режим работы: console или http")
+	port := flag.String("port", cfg.Port, "Порт для HTTP сервера")
 	flag.Parse()
 
 	storage := storage.NewStorage(cfg)
 	executor := executor.NewExecutor(storage)
 	lexer := lexer.NewLexer(executor)
 
-	switch *modeArg {
+	handlers := handlers.NewHttpHandlers(lexer)
+
+	switch *mode {
 	case "console":
-		mode.RunConsoleMode(lexer)
+		console_mode.RunConsoleMode(lexer)
 	case "http":
-		mode.RunHttpServer(lexer, *portArg)
+		http_mode.RunHttpServer(handlers, *port)
 	default:
 		log.Fatal("Неизвестный режим работы. Используйте 'console' или 'http'")
 	}
