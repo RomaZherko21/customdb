@@ -21,3 +21,6 @@ DCL — язык управления данными (Data Control Language)
 N	Команда	Описание
 1	GRANT	Наделяет пользователя правами
 2	REVOKE	Отменяет права пользователя
+
+
+https://habr.com/ru/articles/564390/
