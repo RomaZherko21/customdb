@@ -1,7 +1,4 @@
 CREATE TABLE users (id INT, name TEXT);
-CREATE TABLE users2 (id INT, name TEXT, isAdmin BOOLEAN);
-
-DROP TABLE users2;
 
 INSERT INTO users (id, name) VALUES (1, 'Phil');
 
