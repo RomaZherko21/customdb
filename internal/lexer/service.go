@@ -57,7 +57,7 @@ func (l *lexer) ParseQuery(input string) (*model.Table, error) {
 		}
 
 		return nil, l.exec.InsertInto(parsed)
-	case SELECT:
+	case SELECT_ACTION:
 		parsed, err := dml.ParseSelectCommand(input)
 		if err != nil {
 			return &model.Table{}, fmt.Errorf("ParseQuery(): %w", err)
@@ -86,30 +86,30 @@ func validateQuery(input string) error {
 	return nil
 }
 
-func parseKeyword(input string) (KeywordType, error) {
+func parseKeyword(input string) (SqlActionType, error) {
 	parts := strings.Split(input, " ")
 	command := parts[0]
 
-	switch strings.ToUpper(command) {
-	case "SELECT":
-		return SELECT, nil
-	case "CREATE":
-		subCommand := strings.ToUpper(parts[1])
+	switch SqlKeywordType(strings.ToUpper(command)) {
+	case SELECT:
+		return SELECT_ACTION, nil
+	case CREATE:
+		subCommand := SqlKeywordType(strings.ToUpper(parts[1]))
 
-		if subCommand == "TABLE" {
+		if subCommand == TABLE {
 			return CREATE_TABLE, nil
 		}
 		return "", fmt.Errorf("parseKeyword(): unknown command 'CREATE %s'", subCommand)
-	case "DROP":
-		subCommand := strings.ToUpper(parts[1])
+	case DROP:
+		subCommand := SqlKeywordType(strings.ToUpper(parts[1]))
 
-		if subCommand == "TABLE" {
+		if subCommand == TABLE {
 			return DROP_TABLE, nil
 		}
 		return "", fmt.Errorf("parseKeyword(): unknown command 'DROP %s'", subCommand)
-	case "INSERT":
-		subCommand := strings.ToUpper(parts[1])
-		if subCommand == "INTO" {
+	case INSERT:
+		subCommand := SqlKeywordType(strings.ToUpper(parts[1]))
+		if subCommand == INTO {
 			return INSERT_INTO, nil
 		}
 		return "", fmt.Errorf("parseKeyword(): unknown command 'INSERT %s'", subCommand)

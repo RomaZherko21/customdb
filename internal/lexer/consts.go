@@ -10,12 +10,23 @@ const (
 	SYMBOL     TokenType = "SYMBOL"
 )
 
-type KeywordType string
+// actions
+type SqlActionType string
 
-const CREATE_TABLE KeywordType = "CREATE_TABLE"
-const DROP_TABLE KeywordType = "DROP_TABLE"
-const INSERT_INTO KeywordType = "INSERT_INTO"
-const SELECT KeywordType = "SELECT"
+const CREATE_TABLE SqlActionType = "CREATE_TABLE"
+const DROP_TABLE SqlActionType = "DROP_TABLE"
+const INSERT_INTO SqlActionType = "INSERT_INTO"
+const SELECT_ACTION SqlActionType = "SELECT"
+
+// keywords
+type SqlKeywordType string
+
+const TABLE SqlKeywordType = "TABLE"
+const INTO SqlKeywordType = "INTO"
+const SELECT SqlKeywordType = "SELECT"
+const DROP SqlKeywordType = "DROP"
+const INSERT SqlKeywordType = "INSERT"
+const CREATE SqlKeywordType = "CREATE"
 
 // TokenType = SYMBOL
 const LPAREN = '('
