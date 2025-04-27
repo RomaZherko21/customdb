@@ -55,6 +55,6 @@ func TestLexCharacterDelimited(t *testing.T) {
 		got, _, isValid := lexCharacterDelimited(input, cursor, '\'')
 
 		require.True(t, isValid)
-		require.Equal(t, "he'llo", got.Value)
+		require.Equal(t, "he''llo", got.Value)
 	})
 }

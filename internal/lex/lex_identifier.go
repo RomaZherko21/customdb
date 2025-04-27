@@ -5,6 +5,8 @@ import "strings"
 func lexIdentifier(source string, ic Cursor) (*Token, Cursor, bool) {
 	// Handle separately if is a double-quoted identifier
 	if token, newCursor, ok := lexCharacterDelimited(source, ic, '"'); ok {
+		// Overwrite from stringkind to identifierkind
+		token.Kind = IdentifierToken
 		return token, newCursor, true
 	}
 
@@ -35,12 +37,8 @@ func lexIdentifier(source string, ic Cursor) (*Token, Cursor, bool) {
 		break
 	}
 
-	if len(value) == 0 {
-		return nil, ic, false
-	}
-
 	return &Token{
-		// Unquoted dentifiers are case-insensitive
+		// Unquoted identifiers are case-insensitive
 		Value: strings.ToLower(string(value)),
 		Loc:   ic.Loc,
 		Kind:  IdentifierToken,

@@ -52,7 +52,6 @@ func lexNumeric(source string, ic Cursor) (*Token, Cursor, bool) {
 				cur.Pointer++
 				cur.Loc.Col++
 			}
-
 			continue
 		}
 

@@ -1,5 +1,8 @@
 package lex
 
+// lexCharacterDelimited looks through a source string starting at the
+// given cursor to find a start- and end- delimiter. The delimiter can
+// be escaped be preceeding the delimiter with itself.
 func lexCharacterDelimited(source string, ic Cursor, delimiter byte) (*Token, Cursor, bool) {
 	cur := ic
 
@@ -23,18 +26,15 @@ func lexCharacterDelimited(source string, ic Cursor, delimiter byte) (*Token, Cu
 			if cur.Pointer+1 >= uint(len(source)) || source[cur.Pointer+1] != delimiter {
 				cur.Pointer++
 				cur.Loc.Col++
-
 				return &Token{
 					Value: string(value),
 					Loc:   ic.Loc,
 					Kind:  StringToken,
 				}, cur, true
-			} else {
-				value = append(value, delimiter)
-				cur.Pointer++
-				cur.Loc.Col++
-				continue
 			}
+			value = append(value, delimiter)
+			cur.Pointer++
+			cur.Loc.Col++
 		}
 
 		value = append(value, c)
