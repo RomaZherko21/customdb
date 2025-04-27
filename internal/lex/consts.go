@@ -3,24 +3,24 @@ package lex
 type keyword string
 
 const (
-	selectKeyword keyword = "select"
-	fromKeyword   keyword = "from"
-	asKeyword     keyword = "as"
-	tableKeyword  keyword = "table"
-	createKeyword keyword = "create"
-	insertKeyword keyword = "insert"
-	intoKeyword   keyword = "into"
-	valuesKeyword keyword = "values"
-	intKeyword    keyword = "int"
-	textKeyword   keyword = "text"
+	SelectKeyword keyword = "select"
+	FromKeyword   keyword = "from"
+	AsKeyword     keyword = "as"
+	TableKeyword  keyword = "table"
+	CreateKeyword keyword = "create"
+	InsertKeyword keyword = "insert"
+	IntoKeyword   keyword = "into"
+	ValuesKeyword keyword = "values"
+	IntKeyword    keyword = "int"
+	TextKeyword   keyword = "text"
 )
 
 type symbol string
 
 const (
-	semicolonSymbol  symbol = ";"
-	asteriskSymbol   symbol = "*"
-	commaSymbol      symbol = ","
-	leftparenSymbol  symbol = "("
-	rightparenSymbol symbol = ")"
+	SemicolonSymbol  symbol = ";"
+	AsteriskSymbol   symbol = "*"
+	CommaSymbol      symbol = ","
+	LeftparenSymbol  symbol = "("
+	RightparenSymbol symbol = ")"
 )

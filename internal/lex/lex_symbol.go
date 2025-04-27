@@ -21,11 +21,11 @@ func lexSymbol(source string, ic Cursor) (*Token, Cursor, bool) {
 
 	// Syntax that should be kept
 	symbols := []symbol{
-		commaSymbol,
-		leftparenSymbol,
-		rightparenSymbol,
-		semicolonSymbol,
-		asteriskSymbol,
+		CommaSymbol,
+		LeftparenSymbol,
+		RightparenSymbol,
+		SemicolonSymbol,
+		AsteriskSymbol,
 	}
 
 	var options []string

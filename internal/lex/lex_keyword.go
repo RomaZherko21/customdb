@@ -3,15 +3,15 @@ package lex
 func lexKeyword(source string, ic Cursor) (*Token, Cursor, bool) {
 	cur := ic
 	keywords := []keyword{
-		selectKeyword,
-		insertKeyword,
-		valuesKeyword,
-		tableKeyword,
-		createKeyword,
-		fromKeyword,
-		intoKeyword,
-		intKeyword,
-		textKeyword,
+		SelectKeyword,
+		InsertKeyword,
+		ValuesKeyword,
+		TableKeyword,
+		CreateKeyword,
+		FromKeyword,
+		IntoKeyword,
+		IntKeyword,
+		TextKeyword,
 	}
 
 	var options []string
