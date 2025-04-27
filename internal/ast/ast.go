@@ -3,17 +3,12 @@ package ast
 import (
 	"custom-database/internal/lex"
 	"errors"
-	"fmt"
 )
 
 func Parse(source string) (*Ast, error) {
 	tokens, err := lex.Lex(source)
 	if err != nil {
 		return nil, err
-	}
-
-	for _, t := range tokens {
-		fmt.Println(t.Value, t.Kind)
 	}
 
 	a := Ast{}
