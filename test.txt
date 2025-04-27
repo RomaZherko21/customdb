@@ -10,3 +10,8 @@ SELECT id, name FROM users;
 curl -X POST http://localhost:8080/query \
   -H "Content-Type: application/json" \
   -d '{"query": "INSERT INTO users (id, name) VALUES (3, 'lol');"}'
+
+
+
+JSON.stringify([{id:"INT", name:"TEXT", isAdmin:"BOOLEAN"}, {id:10, name:"Roma", isAdmin:true}])
+'[{"id":"INT","name":"TEXT","isAdmin":"BOOLEAN"},{"id":10,"name":"Roma","isAdmin":true},{"id":20,"name":"Nice","isAdmin":false}]'

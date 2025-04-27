@@ -2,12 +2,13 @@ package lexer
 
 import (
 	"custom-database/internal/executor"
+	"custom-database/internal/model"
 	"fmt"
 	"strings"
 )
 
 type Lexer interface {
-	ParseQuery(input string) ([][]interface{}, error)
+	ParseQuery(input string) (*model.Table, error)
 }
 
 type lexer struct {
@@ -20,25 +21,25 @@ func NewLexer(exec executor.Executor) Lexer {
 	}
 }
 
-func (l *lexer) ParseQuery(input string) ([][]interface{}, error) {
+func (l *lexer) ParseQuery(input string) (*model.Table, error) {
 	err := validateQuery(input)
 	if err != nil {
-		return nil, fmt.Errorf("ParseQuery(): %w", err)
+		return &model.Table{}, fmt.Errorf("ParseQuery(): %w", err)
 	}
 
 	keyword, err := parseKeyword(input)
 	if err != nil {
-		return nil, fmt.Errorf("ParseQuery(): %w", err)
+		return &model.Table{}, fmt.Errorf("ParseQuery(): %w", err)
 	}
 
 	switch keyword {
 	case CREATE_TABLE:
 		parsed, err := ParseCreateTableCommand(input)
 		if err != nil {
-			return nil, fmt.Errorf("ParseQuery(): %w", err)
+			return &model.Table{}, fmt.Errorf("ParseQuery(): %w", err)
 		}
 
-		return nil, l.exec.CreateTable(parsed)
+		return &model.Table{}, l.exec.CreateTable(parsed)
 	case INSERT_INTO:
 		parsed, err := ParseInsertIntoCommand(input)
 		if err != nil {
@@ -49,12 +50,12 @@ func (l *lexer) ParseQuery(input string) ([][]interface{}, error) {
 	case SELECT:
 		parsed, err := ParseSelectCommand(input)
 		if err != nil {
-			return nil, fmt.Errorf("ParseQuery(): %w", err)
+			return &model.Table{}, fmt.Errorf("ParseQuery(): %w", err)
 		}
 
 		result, err := l.exec.Select(parsed)
 		if err != nil {
-			return nil, fmt.Errorf("ParseQuery(): %w", err)
+			return &model.Table{}, fmt.Errorf("ParseQuery(): %w", err)
 		}
 
 		return result, nil

@@ -3,7 +3,7 @@ package storage
 import (
 	"custom-database/config"
 	"custom-database/internal/model"
-	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,12 +13,12 @@ type Storage interface {
 	GetTable(name string) storageTable
 	CreateTable(table model.Table) error
 	InsertInto(table model.Table) error
-	Select(table model.Table) ([][]interface{}, error)
+	Select(table model.Table) (*model.Table, error)
 }
 
 type storageTable struct {
-	Rows    [][]interface{}
-	Columns []model.Column
+	Rows    [][]interface{} `json:"rows"`
+	Columns []model.Column  `json:"columns"`
 }
 
 type storage struct {
@@ -48,8 +48,8 @@ func (s *storage) CreateTable(table model.Table) error {
 		Columns: table.Columns,
 	}
 
-	// Сохраняем таблицу в бинарный файл
-	filename := filepath.Join(s.dir, table.TableName+".bin")
+	// Сохраняем таблицу в JSON файл
+	filename := filepath.Join(s.dir, table.TableName+".json")
 	file, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("failed to create table file: %w", err)
@@ -57,7 +57,8 @@ func (s *storage) CreateTable(table model.Table) error {
 	defer file.Close()
 
 	// Создаем encoder и сохраняем таблицу
-	encoder := gob.NewEncoder(file)
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
 	if err := encoder.Encode(s.tables[table.TableName]); err != nil {
 		return fmt.Errorf("failed to encode table: %w", err)
 	}
@@ -66,7 +67,7 @@ func (s *storage) CreateTable(table model.Table) error {
 }
 
 func (s *storage) InsertInto(table model.Table) error {
-	filename := filepath.Join(s.dir, table.TableName+".bin")
+	filename := filepath.Join(s.dir, table.TableName+".json")
 
 	file, err := os.Open(filename)
 	if err != nil {
@@ -76,7 +77,7 @@ func (s *storage) InsertInto(table model.Table) error {
 
 	// Декодируем данные из файла
 	var tableData storageTable
-	decoder := gob.NewDecoder(file)
+	decoder := json.NewDecoder(file)
 	if err := decoder.Decode(&tableData); err != nil {
 		return fmt.Errorf("failed to decode table data: %w", err)
 	}
@@ -93,14 +94,15 @@ func (s *storage) InsertInto(table model.Table) error {
 	s.tables[table.TableName] = tableName
 
 	// Сохраняем обновленную таблицу в файл
-	filename = filepath.Join(s.dir, table.TableName+".bin")
+	filename = filepath.Join(s.dir, table.TableName+".json")
 	file, err = os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("failed to update table file: %w", err)
 	}
 	defer file.Close()
 
-	encoder := gob.NewEncoder(file)
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
 	if err := encoder.Encode(tableName); err != nil {
 		return fmt.Errorf("failed to encode updated table: %w", err)
 	}
@@ -108,30 +110,34 @@ func (s *storage) InsertInto(table model.Table) error {
 	return nil
 }
 
-func (s *storage) Select(table model.Table) ([][]interface{}, error) {
+func (s *storage) Select(table model.Table) (*model.Table, error) {
 	// Проверяем существование файла таблицы
-	filename := filepath.Join(s.dir, table.TableName+".bin")
+	filename := filepath.Join(s.dir, table.TableName+".json")
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		return nil, fmt.Errorf("table %s not found", table.TableName)
+		return &model.Table{}, fmt.Errorf("table %s not found", table.TableName)
 	}
 
 	// Открываем файл для чтения
 	file, err := os.Open(filename)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open table file: %w", err)
+		return &model.Table{}, fmt.Errorf("failed to open table file: %w", err)
 	}
 	defer file.Close()
 
 	// Декодируем данные из файла
 	var tableData storageTable
-	decoder := gob.NewDecoder(file)
+	decoder := json.NewDecoder(file)
 	if err := decoder.Decode(&tableData); err != nil {
-		return nil, fmt.Errorf("failed to decode table data: %w", err)
+		return &model.Table{}, fmt.Errorf("failed to decode table data: %w", err)
 	}
 
 	// Если запрошены все колонки (*)
 	if len(table.Columns) == 0 {
-		return tableData.Rows, nil
+		return &model.Table{
+			TableName: table.TableName,
+			Columns:   table.Columns,
+			Rows:      tableData.Rows,
+		}, nil
 	}
 
 	// Если запрошены конкретные колонки
@@ -151,5 +157,9 @@ func (s *storage) Select(table model.Table) ([][]interface{}, error) {
 		result = append(result, newRow)
 	}
 
-	return result, nil
+	return &model.Table{
+		TableName: table.TableName,
+		Columns:   tableData.Columns,
+		Rows:      result,
+	}, nil
 }
