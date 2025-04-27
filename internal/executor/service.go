@@ -3,7 +3,6 @@ package executor
 import (
 	"custom-database/internal/model"
 	"custom-database/internal/storage"
-	"fmt"
 )
 
 type Executor interface {
@@ -36,6 +35,5 @@ func (e *executor) Select(command model.Table) ([][]interface{}, error) {
 		return nil, err
 	}
 
-	fmt.Println(rows)
 	return rows, nil
 }

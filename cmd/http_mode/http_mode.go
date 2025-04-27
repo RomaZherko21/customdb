@@ -11,11 +11,6 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// @title Custom Database API
-// @version 1.0
-// @description API для работы с кастомной базой данных
-// @host localhost:8080
-// @BasePath /
 func RunHttpServer(handlers handlers.HttpHandlers, port string) {
 	router := gin.Default()
 

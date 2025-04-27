@@ -1,8 +1,9 @@
+basePath: /
 definitions:
   handlers.SqlQueryRequest:
     properties:
       query:
-        example: INSERT INTO users (id, name) VALUES (1, 'John');
+        example: SELECT id, name FROM users;
         type: string
     required:
     - query
@@ -19,8 +20,12 @@ definitions:
         example: true
         type: boolean
     type: object
+host: localhost:8080
 info:
   contact: {}
+  description: API для работы с кастомной базой данных
+  title: Custom Database API
+  version: "1.0"
 paths:
   /query:
     post:

@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"encoding/json"
+
 	"github.com/gin-gonic/gin"
 )
 
 type SqlQueryRequest struct {
-	Query string `json:"query" binding:"required" example:"INSERT INTO users (id, name) VALUES (1, 'John');"`
+	Query string `json:"query" binding:"required" example:"SELECT id, name FROM users;"`
 }
 
 type SqlQueryResponse struct {
@@ -36,7 +38,7 @@ func (h *handlers) HandleSqlQuery(c *gin.Context) {
 
 	query := request.Query
 
-	err := h.lexer.ParseQuery(query)
+	result, err := h.lexer.ParseQuery(query)
 	if err != nil {
 		c.JSON(400, SqlQueryResponse{
 			Success: false,
@@ -45,8 +47,26 @@ func (h *handlers) HandleSqlQuery(c *gin.Context) {
 		return
 	}
 
+	if result == nil {
+		c.JSON(200, SqlQueryResponse{
+			Success: true,
+			Result:  "Query executed successfully",
+		})
+		return
+	}
+
+	// Конвертируем результат в JSON строку
+	jsonResult, err := json.Marshal(result)
+	if err != nil {
+		c.JSON(400, SqlQueryResponse{
+			Success: false,
+			Error:   "Error converting result to JSON: " + err.Error(),
+		})
+		return
+	}
+
 	c.JSON(200, SqlQueryResponse{
 		Success: true,
-		Result:  "Query executed successfully",
+		Result:  string(jsonResult),
 	})
 }

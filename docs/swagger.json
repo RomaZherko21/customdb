@@ -1,8 +1,13 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "API для работы с кастомной базой данных",
+        "title": "Custom Database API",
+        "contact": {},
+        "version": "1.0"
     },
+    "host": "localhost:8080",
+    "basePath": "/",
     "paths": {
         "/query": {
             "post": {
@@ -54,7 +59,7 @@
             "properties": {
                 "query": {
                     "type": "string",
-                    "example": "INSERT INTO users (id, name) VALUES (1, 'John');"
+                    "example": "SELECT id, name FROM users;"
                 }
             }
         },

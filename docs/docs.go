@@ -65,7 +65,7 @@ const docTemplate = `{
             "properties": {
                 "query": {
                     "type": "string",
-                    "example": "INSERT INTO users (id, name) VALUES (1, 'John');"
+                    "example": "SELECT id, name FROM users;"
                 }
             }
         },
@@ -91,12 +91,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
+	Version:          "1.0",
+	Host:             "localhost:8080",
+	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Title:            "Custom Database API",
+	Description:      "API для работы с кастомной базой данных",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

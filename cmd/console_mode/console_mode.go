@@ -27,10 +27,17 @@ func RunConsoleMode(lexer lexer.Lexer) {
 			return
 		}
 
-		err = lexer.ParseQuery(input)
+		result, err := lexer.ParseQuery(input)
 		if err != nil {
 			fmt.Println("Main():", err)
 			continue
 		}
+
+		if result == nil {
+			fmt.Println("Query executed successfully")
+			continue
+		}
+
+		fmt.Println(result)
 	}
 }

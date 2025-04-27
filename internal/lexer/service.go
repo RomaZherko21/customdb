@@ -7,7 +7,7 @@ import (
 )
 
 type Lexer interface {
-	ParseQuery(input string) error
+	ParseQuery(input string) ([][]interface{}, error)
 }
 
 type lexer struct {
@@ -20,45 +20,47 @@ func NewLexer(exec executor.Executor) Lexer {
 	}
 }
 
-func (l *lexer) ParseQuery(input string) error {
+func (l *lexer) ParseQuery(input string) ([][]interface{}, error) {
 	err := validateQuery(input)
 	if err != nil {
-		return fmt.Errorf("ParseQuery(): %w", err)
+		return nil, fmt.Errorf("ParseQuery(): %w", err)
 	}
 
 	keyword, err := parseKeyword(input)
 	if err != nil {
-		return fmt.Errorf("ParseQuery(): %w", err)
+		return nil, fmt.Errorf("ParseQuery(): %w", err)
 	}
 
 	switch keyword {
 	case CREATE_TABLE:
-		result, err := ParseCreateTableCommand(input)
+		parsed, err := ParseCreateTableCommand(input)
 		if err != nil {
-			return fmt.Errorf("ParseQuery(): %w", err)
+			return nil, fmt.Errorf("ParseQuery(): %w", err)
 		}
 
-		return l.exec.CreateTable(result)
+		return nil, l.exec.CreateTable(parsed)
 	case INSERT_INTO:
-		result, err := ParseInsertIntoCommand(input)
+		parsed, err := ParseInsertIntoCommand(input)
 		if err != nil {
-			return fmt.Errorf("ParseQuery(): %w", err)
+			return nil, fmt.Errorf("ParseQuery(): %w", err)
 		}
 
-		return l.exec.InsertInto(result)
+		return nil, l.exec.InsertInto(parsed)
 	case SELECT:
-		result, err := ParseSelectCommand(input)
+		parsed, err := ParseSelectCommand(input)
 		if err != nil {
-			return fmt.Errorf("ParseQuery(): %w", err)
+			return nil, fmt.Errorf("ParseQuery(): %w", err)
 		}
 
-		_, err = l.exec.Select(result)
+		result, err := l.exec.Select(parsed)
 		if err != nil {
-			return fmt.Errorf("ParseQuery(): %w", err)
+			return nil, fmt.Errorf("ParseQuery(): %w", err)
 		}
+
+		return result, nil
 	}
 
-	return nil
+	return nil, nil
 }
 
 func validateQuery(input string) error {

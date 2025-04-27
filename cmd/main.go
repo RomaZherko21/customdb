@@ -12,6 +12,11 @@ import (
 	"log"
 )
 
+// @title Custom Database API
+// @version 1.0
+// @description API для работы с кастомной базой данных
+// @host localhost:8080
+// @BasePath /
 func main() {
 	cfg, err := config.Load()
 	if err != nil {
