@@ -5,6 +5,9 @@ import (
 	"custom-database/internal/model"
 	"fmt"
 	"strings"
+
+	"custom-database/internal/lexer/ddl"
+	"custom-database/internal/lexer/dml"
 )
 
 type Lexer interface {
@@ -34,21 +37,28 @@ func (l *lexer) ParseQuery(input string) (*model.Table, error) {
 
 	switch keyword {
 	case CREATE_TABLE:
-		parsed, err := ParseCreateTableCommand(input)
+		parsed, err := ddl.ParseCreateTableCommand(input)
 		if err != nil {
 			return &model.Table{}, fmt.Errorf("ParseQuery(): %w", err)
 		}
 
 		return &model.Table{}, l.exec.CreateTable(parsed)
+	case DROP_TABLE:
+		parsed, err := ddl.ParseDropTableCommand(input)
+		if err != nil {
+			return &model.Table{}, fmt.Errorf("ParseQuery(): %w", err)
+		}
+
+		return &model.Table{}, l.exec.DropTable(parsed)
 	case INSERT_INTO:
-		parsed, err := ParseInsertIntoCommand(input)
+		parsed, err := dml.ParseInsertIntoCommand(input)
 		if err != nil {
 			return nil, fmt.Errorf("ParseQuery(): %w", err)
 		}
 
 		return nil, l.exec.InsertInto(parsed)
 	case SELECT:
-		parsed, err := ParseSelectCommand(input)
+		parsed, err := dml.ParseSelectCommand(input)
 		if err != nil {
 			return &model.Table{}, fmt.Errorf("ParseQuery(): %w", err)
 		}
@@ -90,6 +100,13 @@ func parseKeyword(input string) (KeywordType, error) {
 			return CREATE_TABLE, nil
 		}
 		return "", fmt.Errorf("parseKeyword(): unknown command 'CREATE %s'", subCommand)
+	case "DROP":
+		subCommand := strings.ToUpper(parts[1])
+
+		if subCommand == "TABLE" {
+			return DROP_TABLE, nil
+		}
+		return "", fmt.Errorf("parseKeyword(): unknown command 'DROP %s'", subCommand)
 	case "INSERT":
 		subCommand := strings.ToUpper(parts[1])
 		if subCommand == "INTO" {

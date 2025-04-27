@@ -13,6 +13,7 @@ const (
 type KeywordType string
 
 const CREATE_TABLE KeywordType = "CREATE_TABLE"
+const DROP_TABLE KeywordType = "DROP_TABLE"
 const INSERT_INTO KeywordType = "INSERT_INTO"
 const SELECT KeywordType = "SELECT"
 

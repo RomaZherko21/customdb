@@ -12,6 +12,7 @@ import (
 type Storage interface {
 	GetTable(name string) storageTable
 	CreateTable(table model.Table) error
+	DropTable(table model.Table) error
 	InsertInto(table model.Table) error
 	Select(table model.Table) (*model.Table, error)
 }
@@ -62,6 +63,21 @@ func (s *storage) CreateTable(table model.Table) error {
 	if err := encoder.Encode(s.tables[table.TableName]); err != nil {
 		return fmt.Errorf("failed to encode table: %w", err)
 	}
+
+	return nil
+}
+
+func (s *storage) DropTable(table model.Table) error {
+	filename := filepath.Join(s.dir, table.TableName+".json")
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		return fmt.Errorf("table %s not found", table.TableName)
+	}
+
+	if err := os.Remove(filename); err != nil {
+		return fmt.Errorf("failed to remove table file: %w", err)
+	}
+
+	delete(s.tables, table.TableName)
 
 	return nil
 }

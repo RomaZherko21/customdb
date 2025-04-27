@@ -9,6 +9,7 @@ type Executor interface {
 	CreateTable(command model.Table) error
 	InsertInto(command model.Table) error
 	Select(command model.Table) (*model.Table, error)
+	DropTable(tableName model.Table) error
 }
 
 type executor struct {
@@ -23,6 +24,10 @@ func NewExecutor(storage storage.Storage) Executor {
 
 func (e *executor) CreateTable(command model.Table) error {
 	return e.storage.CreateTable(command)
+}
+
+func (e *executor) DropTable(command model.Table) error {
+	return e.storage.DropTable(command)
 }
 
 func (e *executor) InsertInto(command model.Table) error {

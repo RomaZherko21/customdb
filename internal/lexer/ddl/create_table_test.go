@@ -1,4 +1,4 @@
-package lexer
+package ddl
 
 import (
 	"custom-database/internal/model"
