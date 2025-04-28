@@ -56,7 +56,7 @@ func parseCreateTableStatement(tokens []*lex.Token, initialCursor uint, delimite
 	}, cursor, true
 }
 
-func parseColumnDefinitions(tokens []*lex.Token, initialCursor uint, delimiter lex.Token) (*[]*columnDefinition, uint, bool) {
+func parseColumnDefinitions(tokens []*lex.Token, initialCursor uint, endDelimiter lex.Token) (*[]*columnDefinition, uint, bool) {
 	cursor := initialCursor
 
 	cds := []*columnDefinition{}
@@ -67,7 +67,7 @@ func parseColumnDefinitions(tokens []*lex.Token, initialCursor uint, delimiter l
 
 		// Look for a delimiter
 		current := tokens[cursor]
-		if delimiter.Equals(current) {
+		if endDelimiter.Equals(current) {
 			break
 		}
 
@@ -82,7 +82,7 @@ func parseColumnDefinitions(tokens []*lex.Token, initialCursor uint, delimiter l
 		}
 
 		// Look for a column name
-		id, newCursor, ok := lex.ParseToken(tokens, cursor, lex.IdentifierToken)
+		columnName, newCursor, ok := lex.ParseToken(tokens, cursor, lex.IdentifierToken)
 		if !ok {
 			lex.HelpMessage(tokens, cursor, "Expected column name")
 			return nil, initialCursor, false
@@ -90,7 +90,7 @@ func parseColumnDefinitions(tokens []*lex.Token, initialCursor uint, delimiter l
 		cursor = newCursor
 
 		// Look for a column type
-		ty, newCursor, ok := lex.ParseToken(tokens, cursor, lex.KeywordToken)
+		columnType, newCursor, ok := lex.ParseToken(tokens, cursor, lex.KeywordToken)
 		if !ok {
 			lex.HelpMessage(tokens, cursor, "Expected column type")
 			return nil, initialCursor, false
@@ -98,8 +98,8 @@ func parseColumnDefinitions(tokens []*lex.Token, initialCursor uint, delimiter l
 		cursor = newCursor
 
 		cds = append(cds, &columnDefinition{
-			name:     *id,
-			datatype: *ty,
+			name:     *columnName,
+			datatype: *columnType,
 		})
 	}
 
