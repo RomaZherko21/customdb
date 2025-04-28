@@ -26,10 +26,10 @@ func TestParseInsertStatement(t *testing.T) {
 
 		require.True(t, ok)
 		require.Equal(t, uint(9), cursor)
-		require.Equal(t, "users", result.table.Value)
-		require.Len(t, *result.values, 2)
-		require.Equal(t, "1", (*result.values)[0].literal.Value)
-		require.Equal(t, "John", (*result.values)[1].literal.Value)
+		require.Equal(t, "users", result.Table.Value)
+		require.Len(t, *result.Values, 2)
+		require.Equal(t, "1", (*result.Values)[0].Literal.Value)
+		require.Equal(t, "John", (*result.Values)[1].Literal.Value)
 	})
 
 	t.Run("invalid INSERT statement - missing INTO keyword", func(t *testing.T) {

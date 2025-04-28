@@ -6,6 +6,7 @@ import (
 	"custom-database/cmd/http_mode"
 	"custom-database/config"
 	"custom-database/internal/ast"
+	"custom-database/internal/backend"
 	"custom-database/internal/executor"
 	"custom-database/internal/http/handlers"
 	"custom-database/internal/lexer"
@@ -51,6 +52,8 @@ func main() {
 }
 
 func newLexVersion() {
+	mb := backend.NewMemoryBackend()
+
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Println("Welcome to gosql.")
 	for {
@@ -66,11 +69,54 @@ func newLexVersion() {
 		for _, stmt := range result.Statements {
 			switch stmt.Kind {
 			case ast.CreateTableKind:
-				fmt.Println("create table", result.Statements[0].CreateTableStatement)
+				err = mb.CreateTable(result.Statements[0].CreateTableStatement)
+				if err != nil {
+					panic(err)
+				}
+				fmt.Println("ok")
 			case ast.InsertKind:
-				fmt.Println("insert", result.Statements[0].InsertStatement)
+				err = mb.Insert(stmt.InsertStatement)
+				if err != nil {
+					panic(err)
+				}
+
+				fmt.Println("ok")
 			case ast.SelectKind:
-				fmt.Println("select", result.Statements[0].SelectStatement)
+				results, err := mb.Select(stmt.SelectStatement)
+				if err != nil {
+					panic(err)
+				}
+
+				for _, col := range results.Columns {
+					fmt.Printf("| %s ", col.Name)
+				}
+				fmt.Println("|")
+
+				for i := 0; i < 20; i++ {
+					fmt.Printf("=")
+				}
+				fmt.Println()
+
+				for _, row := range results.Rows {
+					fmt.Printf("|")
+
+					for i, cell := range row {
+						typ := results.Columns[i].Type
+						s := ""
+						switch typ {
+						case backend.IntType:
+							s = fmt.Sprintf("%d", cell.AsInt())
+						case backend.TextType:
+							s = cell.AsText()
+						}
+
+						fmt.Printf(" %s | ", s)
+					}
+
+					fmt.Println()
+				}
+
+				fmt.Println("ok")
 			}
 		}
 	}

@@ -2,10 +2,10 @@ package ast
 
 import "custom-database/internal/lex"
 
-func parseExpressions(tokens []*lex.Token, initialCursor uint, delimiters []lex.Token) (*[]*expression, uint, bool) {
+func parseExpressions(tokens []*lex.Token, initialCursor uint, delimiters []lex.Token) (*[]*Expression, uint, bool) {
 	cursor := initialCursor
 
-	exps := []*expression{}
+	exps := []*Expression{}
 outer:
 	for {
 		if cursor >= uint(len(tokens)) {
@@ -44,16 +44,16 @@ outer:
 	return &exps, cursor, true
 }
 
-func parseExpression(tokens []*lex.Token, initialCursor uint, _ lex.Token) (*expression, uint, bool) {
+func parseExpression(tokens []*lex.Token, initialCursor uint, _ lex.Token) (*Expression, uint, bool) {
 	cursor := initialCursor
 
 	kinds := []lex.TokenKind{lex.IdentifierToken, lex.NumericToken, lex.StringToken}
 	for _, kind := range kinds {
 		t, newCursor, ok := lex.ParseToken(tokens, cursor, kind)
 		if ok {
-			return &expression{
-				literal: t,
-				kind:    literalKind,
+			return &Expression{
+				Literal: t,
+				Kind:    LiteralKind,
 			}, newCursor, true
 		}
 	}

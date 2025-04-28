@@ -27,12 +27,12 @@ func TestParseCreateTableStatement(t *testing.T) {
 
 		require.True(t, ok)
 		require.Equal(t, uint(10), cursor)
-		require.Equal(t, "users", result.name.Value)
-		require.Len(t, *result.cols, 2)
-		require.Equal(t, "id", (*result.cols)[0].name.Value)
-		require.Equal(t, "int", (*result.cols)[0].datatype.Value)
-		require.Equal(t, "name", (*result.cols)[1].name.Value)
-		require.Equal(t, "text", (*result.cols)[1].datatype.Value)
+		require.Equal(t, "users", result.Name.Value)
+		require.Len(t, *result.Cols, 2)
+		require.Equal(t, "id", (*result.Cols)[0].Name.Value)
+		require.Equal(t, "int", (*result.Cols)[0].Datatype.Value)
+		require.Equal(t, "name", (*result.Cols)[1].Name.Value)
+		require.Equal(t, "text", (*result.Cols)[1].Datatype.Value)
 	})
 
 	t.Run("invalid CREATE statement - missing TABLE keyword", func(t *testing.T) {
@@ -96,10 +96,10 @@ func TestParseColumnDefinitions(t *testing.T) {
 		require.True(t, ok)
 		require.Equal(t, uint(5), cursor)
 		require.Len(t, *cols, 2)
-		require.Equal(t, "id", (*cols)[0].name.Value)
-		require.Equal(t, "int", (*cols)[0].datatype.Value)
-		require.Equal(t, "name", (*cols)[1].name.Value)
-		require.Equal(t, "text", (*cols)[1].datatype.Value)
+		require.Equal(t, "id", (*cols)[0].Name.Value)
+		require.Equal(t, "int", (*cols)[0].Datatype.Value)
+		require.Equal(t, "name", (*cols)[1].Name.Value)
+		require.Equal(t, "text", (*cols)[1].Datatype.Value)
 	})
 
 	t.Run("invalid column definition - missing column type", func(t *testing.T) {

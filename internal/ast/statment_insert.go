@@ -3,8 +3,8 @@ package ast
 import "custom-database/internal/lex"
 
 type InsertStatement struct {
-	table  lex.Token
-	values *[]*expression
+	Table  lex.Token
+	Values *[]*Expression
 }
 
 func parseInsertStatement(tokens []*lex.Token, initialCursor uint, delimiter lex.Token) (*InsertStatement, uint, bool) {
@@ -60,7 +60,7 @@ func parseInsertStatement(tokens []*lex.Token, initialCursor uint, delimiter lex
 	cursor++
 
 	return &InsertStatement{
-		table:  *table,
-		values: values,
+		Table:  *table,
+		Values: values,
 	}, cursor, true
 }

@@ -3,13 +3,13 @@ package ast
 import "custom-database/internal/lex"
 
 type CreateTableStatement struct {
-	name lex.Token
-	cols *[]*columnDefinition
+	Name lex.Token
+	Cols *[]*columnDefinition
 }
 
 type columnDefinition struct {
-	name     lex.Token
-	datatype lex.Token
+	Name     lex.Token
+	Datatype lex.Token
 }
 
 func parseCreateTableStatement(tokens []*lex.Token, initialCursor uint, delimiter lex.Token) (*CreateTableStatement, uint, bool) {
@@ -51,8 +51,8 @@ func parseCreateTableStatement(tokens []*lex.Token, initialCursor uint, delimite
 	cursor++
 
 	return &CreateTableStatement{
-		name: *name,
-		cols: cols,
+		Name: *name,
+		Cols: cols,
 	}, cursor, true
 }
 
@@ -98,8 +98,8 @@ func parseColumnDefinitions(tokens []*lex.Token, initialCursor uint, endDelimite
 		cursor = newCursor
 
 		cds = append(cds, &columnDefinition{
-			name:     *columnName,
-			datatype: *columnType,
+			Name:     *columnName,
+			Datatype: *columnType,
 		})
 	}
 

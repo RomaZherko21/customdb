@@ -15,12 +15,12 @@ func TestParse(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, result.Statements, 1)
 		require.Equal(t, CreateTableKind, result.Statements[0].Kind)
-		require.Equal(t, "users", result.Statements[0].CreateTableStatement.name.Value)
-		require.Len(t, *result.Statements[0].CreateTableStatement.cols, 2)
-		require.Equal(t, "id", (*result.Statements[0].CreateTableStatement.cols)[0].name.Value)
-		require.Equal(t, "int", (*result.Statements[0].CreateTableStatement.cols)[0].datatype.Value)
-		require.Equal(t, "name", (*result.Statements[0].CreateTableStatement.cols)[1].name.Value)
-		require.Equal(t, "text", (*result.Statements[0].CreateTableStatement.cols)[1].datatype.Value)
+		require.Equal(t, "users", result.Statements[0].CreateTableStatement.Name.Value)
+		require.Len(t, *result.Statements[0].CreateTableStatement.Cols, 2)
+		require.Equal(t, "id", (*result.Statements[0].CreateTableStatement.Cols)[0].Name.Value)
+		require.Equal(t, "int", (*result.Statements[0].CreateTableStatement.Cols)[0].Datatype.Value)
+		require.Equal(t, "name", (*result.Statements[0].CreateTableStatement.Cols)[1].Name.Value)
+		require.Equal(t, "text", (*result.Statements[0].CreateTableStatement.Cols)[1].Datatype.Value)
 	})
 
 	t.Run("valid INSERT statement", func(t *testing.T) {
@@ -31,10 +31,10 @@ func TestParse(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, result.Statements, 1)
 		require.Equal(t, InsertKind, result.Statements[0].Kind)
-		require.Equal(t, "users", result.Statements[0].InsertStatement.table.Value)
-		require.Len(t, *result.Statements[0].InsertStatement.values, 2)
-		require.Equal(t, "1", (*result.Statements[0].InsertStatement.values)[0].literal.Value)
-		require.Equal(t, "Phil", (*result.Statements[0].InsertStatement.values)[1].literal.Value)
+		require.Equal(t, "users", result.Statements[0].InsertStatement.Table.Value)
+		require.Len(t, *result.Statements[0].InsertStatement.Values, 2)
+		require.Equal(t, "1", (*result.Statements[0].InsertStatement.Values)[0].Literal.Value)
+		require.Equal(t, "Phil", (*result.Statements[0].InsertStatement.Values)[1].Literal.Value)
 	})
 
 	t.Run("valid SELECT statement", func(t *testing.T) {
@@ -45,10 +45,10 @@ func TestParse(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, result.Statements, 1)
 		require.Equal(t, SelectKind, result.Statements[0].Kind)
-		require.Len(t, result.Statements[0].SelectStatement.item, 2)
-		require.Equal(t, "id", result.Statements[0].SelectStatement.item[0].literal.Value)
-		require.Equal(t, "name", result.Statements[0].SelectStatement.item[1].literal.Value)
-		require.Equal(t, "users", result.Statements[0].SelectStatement.from.Value)
+		require.Len(t, result.Statements[0].SelectStatement.Item, 2)
+		require.Equal(t, "id", result.Statements[0].SelectStatement.Item[0].Literal.Value)
+		require.Equal(t, "name", result.Statements[0].SelectStatement.Item[1].Literal.Value)
+		require.Equal(t, "users", result.Statements[0].SelectStatement.From.Value)
 	})
 
 	t.Run("valid multiple statements", func(t *testing.T) {
@@ -61,13 +61,13 @@ func TestParse(t *testing.T) {
 
 		// Проверяем CREATE TABLE
 		require.Equal(t, CreateTableKind, result.Statements[0].Kind)
-		require.Equal(t, "users", result.Statements[0].CreateTableStatement.name.Value)
-		require.Len(t, *result.Statements[0].CreateTableStatement.cols, 2)
+		require.Equal(t, "users", result.Statements[0].CreateTableStatement.Name.Value)
+		require.Len(t, *result.Statements[0].CreateTableStatement.Cols, 2)
 
 		// Проверяем INSERT
 		require.Equal(t, InsertKind, result.Statements[1].Kind)
-		require.Equal(t, "users", result.Statements[1].InsertStatement.table.Value)
-		require.Len(t, *result.Statements[1].InsertStatement.values, 2)
+		require.Equal(t, "users", result.Statements[1].InsertStatement.Table.Value)
+		require.Len(t, *result.Statements[1].InsertStatement.Values, 2)
 	})
 
 	t.Run("invalid statement - missing semicolon", func(t *testing.T) {

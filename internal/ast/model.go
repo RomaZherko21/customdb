@@ -21,13 +21,13 @@ type Statement struct {
 	Kind                 AstKind
 }
 
-type expressionKind uint
+type ExpressionKind uint
 
 const (
-	literalKind expressionKind = iota
+	LiteralKind ExpressionKind = iota
 )
 
-type expression struct {
-	literal *lex.Token
-	kind    expressionKind
+type Expression struct {
+	Literal *lex.Token
+	Kind    ExpressionKind
 }

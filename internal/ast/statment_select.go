@@ -3,8 +3,8 @@ package ast
 import "custom-database/internal/lex"
 
 type SelectStatement struct {
-	item []*expression
-	from lex.Token
+	Item []*Expression
+	From lex.Token
 }
 
 func parseSelectStatement(tokens []*lex.Token, initialCursor uint, delimiter lex.Token) (*SelectStatement, uint, bool) {
@@ -21,7 +21,7 @@ func parseSelectStatement(tokens []*lex.Token, initialCursor uint, delimiter lex
 		return nil, initialCursor, false
 	}
 
-	slct.item = *exps
+	slct.Item = *exps
 	cursor = newCursor
 
 	if lex.ExpectToken(tokens, cursor, lex.TokenFromKeyword(lex.FromKeyword)) {
@@ -33,7 +33,7 @@ func parseSelectStatement(tokens []*lex.Token, initialCursor uint, delimiter lex
 			return nil, initialCursor, false
 		}
 
-		slct.from = *from
+		slct.From = *from
 		cursor = newCursor
 	}
 
