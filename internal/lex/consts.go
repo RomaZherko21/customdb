@@ -15,6 +15,18 @@ const (
 	TextKeyword   keyword = "text"
 )
 
+var keywords = []keyword{
+	SelectKeyword,
+	InsertKeyword,
+	ValuesKeyword,
+	TableKeyword,
+	CreateKeyword,
+	FromKeyword,
+	IntoKeyword,
+	IntKeyword,
+	TextKeyword,
+}
+
 type symbol string
 
 const (
@@ -24,3 +36,11 @@ const (
 	LeftparenSymbol  symbol = "("
 	RightparenSymbol symbol = ")"
 )
+
+var symbols = []symbol{
+	CommaSymbol,
+	LeftparenSymbol,
+	RightparenSymbol,
+	SemicolonSymbol,
+	AsteriskSymbol,
+}

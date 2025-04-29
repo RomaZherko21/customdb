@@ -14,14 +14,14 @@ func Parse(source string) (*Ast, error) {
 	a := Ast{}
 	cursor := uint(0)
 	for cursor < uint(len(tokens)) {
-		stmt, newCursor, ok := parseStatement(tokens, cursor, lex.TokenFromSymbol(lex.SemicolonSymbol))
+		statement, newCursor, ok := parseStatement(tokens, cursor, lex.TokenFromSymbol(lex.SemicolonSymbol))
 		if !ok {
 			lex.HelpMessage(tokens, cursor, "Expected statement")
 			return nil, errors.New("Failed to parse, expected statement")
 		}
 		cursor = newCursor
 
-		a.Statements = append(a.Statements, stmt)
+		a.Statements = append(a.Statements, statement)
 
 		atLeastOneSemicolon := false
 		for lex.ExpectToken(tokens, cursor, lex.TokenFromSymbol(lex.SemicolonSymbol)) {

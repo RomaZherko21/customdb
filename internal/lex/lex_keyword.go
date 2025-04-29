@@ -2,17 +2,6 @@ package lex
 
 func lexKeyword(source string, ic Cursor) (*Token, Cursor, bool) {
 	cur := ic
-	keywords := []keyword{
-		SelectKeyword,
-		InsertKeyword,
-		ValuesKeyword,
-		TableKeyword,
-		CreateKeyword,
-		FromKeyword,
-		IntoKeyword,
-		IntKeyword,
-		TextKeyword,
-	}
 
 	var options []string
 	for _, k := range keywords {

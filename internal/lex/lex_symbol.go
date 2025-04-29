@@ -20,13 +20,6 @@ func lexSymbol(source string, ic Cursor) (*Token, Cursor, bool) {
 	}
 
 	// Syntax that should be kept
-	symbols := []symbol{
-		CommaSymbol,
-		LeftparenSymbol,
-		RightparenSymbol,
-		SemicolonSymbol,
-		AsteriskSymbol,
-	}
 
 	var options []string
 	for _, s := range symbols {

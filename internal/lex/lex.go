@@ -13,8 +13,8 @@ func Lex(source string) ([]*Token, error) {
 lex:
 	for cur.Pointer < uint(len(source)) {
 		lexers := []lexer{lexKeyword, lexSymbol, lexString, lexNumeric, lexIdentifier}
-		for _, l := range lexers {
-			if token, newCursor, ok := l(source, cur); ok {
+		for _, lexFunc := range lexers {
+			if token, newCursor, ok := lexFunc(source, cur); ok {
 				cur = newCursor
 
 				// Omit nil tokens for valid, but empty syntax like newlines
