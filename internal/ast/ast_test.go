@@ -51,6 +51,17 @@ func TestParse(t *testing.T) {
 		require.Equal(t, "users", result.Statements[0].SelectStatement.From.Value)
 	})
 
+	t.Run("valid DROP TABLE statement", func(t *testing.T) {
+		source := "DROP TABLE users;"
+
+		result, err := Parse(source)
+
+		require.NoError(t, err)
+		require.Len(t, result.Statements, 1)
+		require.Equal(t, DropTableKind, result.Statements[0].Kind)
+		require.Equal(t, "users", result.Statements[0].DropTableStatement.Table.Value)
+	})
+
 	t.Run("valid multiple statements", func(t *testing.T) {
 		source := "CREATE TABLE users (id INT, name TEXT); INSERT INTO users VALUES (1, 'Phil');"
 
@@ -108,6 +119,15 @@ func TestParse(t *testing.T) {
 
 	t.Run("invalid statement - malformed SELECT", func(t *testing.T) {
 		source := "SELECT id name FROM users;"
+
+		result, err := Parse(source)
+
+		require.Error(t, err)
+		require.Nil(t, result)
+	})
+
+	t.Run("invalid statement - malformed DROP TABLE", func(t *testing.T) {
+		source := "DROP TABLE;"
 
 		result, err := Parse(source)
 

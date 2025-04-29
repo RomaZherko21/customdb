@@ -91,6 +91,27 @@ func TestLex(t *testing.T) {
 		}
 	})
 
+	t.Run("DROP TABLE command", func(t *testing.T) {
+		input := "DROP TABLE users;"
+		want := []*Token{
+			{Kind: KeywordToken, Value: "drop"},
+			{Kind: KeywordToken, Value: "table"},
+			{Kind: IdentifierToken, Value: "users"},
+			{Kind: SymbolToken, Value: ";"},
+		}
+
+		got, err := Lex(input)
+
+		require.NoError(t, err)
+
+		for i, token := range want {
+			if token.Kind != got[i].Kind || token.Value != got[i].Value {
+				t.Errorf("\nОшибка в токене %d:\nОжидалось: {Kind: %v, Value: %q}\nПолучено:  {Kind: %v, Value: %q}",
+					i, token.Kind, token.Value, got[i].Kind, got[i].Value)
+			}
+		}
+	})
+
 	t.Run("invalid SQL", func(t *testing.T) {
 		input := "SELECT ===;"
 

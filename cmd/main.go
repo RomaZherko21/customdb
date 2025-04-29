@@ -63,7 +63,7 @@ func newLexVersion() {
 
 		result, err := ast.Parse(text)
 		if err != nil {
-			panic(err)
+			fmt.Println(err)
 		}
 
 		for _, stmt := range result.Statements {
@@ -71,20 +71,30 @@ func newLexVersion() {
 			case ast.CreateTableKind:
 				err = mb.CreateTable(result.Statements[0].CreateTableStatement)
 				if err != nil {
-					panic(err)
+					fmt.Println(err)
+					return
+				}
+				fmt.Println("ok")
+			case ast.DropTableKind:
+				err = mb.DropTable(stmt.DropTableStatement)
+				if err != nil {
+					fmt.Println(err)
+					return
 				}
 				fmt.Println("ok")
 			case ast.InsertKind:
 				err = mb.Insert(stmt.InsertStatement)
 				if err != nil {
-					panic(err)
+					fmt.Println(err)
+					return
 				}
 
 				fmt.Println("ok")
 			case ast.SelectKind:
 				results, err := mb.Select(stmt.SelectStatement)
 				if err != nil {
-					panic(err)
+					fmt.Println(err)
+					return
 				}
 
 				for _, col := range results.Columns {

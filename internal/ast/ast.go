@@ -69,5 +69,14 @@ func parseStatement(tokens []*lex.Token, initialCursor uint, delimiter lex.Token
 		}, newCursor, true
 	}
 
+	// Look for a DROP statement
+	dropTbl, newCursor, ok := parseDropTableStatement(tokens, cursor, semicolonToken)
+	if ok {
+		return &Statement{
+			Kind:               DropTableKind,
+			DropTableStatement: dropTbl,
+		}, newCursor, true
+	}
+
 	return nil, initialCursor, false
 }

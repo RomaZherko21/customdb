@@ -102,6 +102,16 @@ func (mb *MemoryBackend) CreateTable(statement *ast.CreateTableStatement) error 
 	return nil
 }
 
+func (mb *MemoryBackend) DropTable(statement *ast.DropTableStatement) error {
+	_, ok := mb.tables[statement.Table.Value]
+	if !ok {
+		return ErrTableDoesNotExist
+	}
+
+	delete(mb.tables, statement.Table.Value)
+	return nil
+}
+
 func (mb *MemoryBackend) Insert(statement *ast.InsertStatement) error {
 	table, ok := mb.tables[statement.Table.Value]
 	if !ok {

@@ -12,12 +12,14 @@ const (
 	SelectKind AstKind = iota
 	CreateTableKind
 	InsertKind
+	DropTableKind
 )
 
 type Statement struct {
 	SelectStatement      *SelectStatement
 	CreateTableStatement *CreateTableStatement
 	InsertStatement      *InsertStatement
+	DropTableStatement   *DropTableStatement
 	Kind                 AstKind
 }
 

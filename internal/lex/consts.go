@@ -13,6 +13,7 @@ const (
 	ValuesKeyword keyword = "values"
 	IntKeyword    keyword = "int"
 	TextKeyword   keyword = "text"
+	DropKeyword   keyword = "drop"
 )
 
 var keywords = []keyword{
@@ -25,6 +26,7 @@ var keywords = []keyword{
 	IntoKeyword,
 	IntKeyword,
 	TextKeyword,
+	DropKeyword,
 }
 
 type symbol string
