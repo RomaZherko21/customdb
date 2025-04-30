@@ -11,16 +11,14 @@ import (
 )
 
 func (mb *memoryBackend) createTable(statement *ast.CreateTableStatement) error {
-	t := table{}
-	mb.tables[statement.Name.Value] = &t
 	if statement.Cols == nil {
 		return nil
 	}
 
+	columns := []models.Column{}
 	for _, col := range *statement.Cols {
-		t.columns = append(t.columns, col.Name.Value)
-
 		var dt models.ColumnType
+
 		switch col.Datatype.Value {
 		case "int":
 			dt = models.IntType
@@ -30,38 +28,27 @@ func (mb *memoryBackend) createTable(statement *ast.CreateTableStatement) error 
 			return fmt.Errorf("Invalid datatype: %s", col.Datatype.Value)
 		}
 
-		t.columnTypes = append(t.columnTypes, dt)
+		columns = append(columns, models.Column{
+			Name: col.Name.Value,
+			Type: dt,
+		})
 	}
+
+	mb.memoryStorage.CreateTable(statement.Name.Value, columns)
 
 	return nil
 }
 
 func (mb *memoryBackend) dropTable(statement *ast.DropTableStatement) error {
-	_, ok := mb.tables[statement.Table.Value]
-	if !ok {
-		return fmt.Errorf("Table does not exist: %s", statement.Table.Value)
-	}
-
-	delete(mb.tables, statement.Table.Value)
-	return nil
+	return mb.memoryStorage.DropTable(statement.Table.Value)
 }
 
 func (mb *memoryBackend) insertIntoTable(statement *ast.InsertStatement) error {
-	table, ok := mb.tables[statement.Table.Value]
-	if !ok {
-		return fmt.Errorf("Table does not exist: %s", statement.Table.Value)
-	}
-
 	if statement.Values == nil {
 		return nil
 	}
 
 	row := []MemoryCell{}
-
-	if len(*statement.Values) != len(table.columns) {
-		return fmt.Errorf("Missing values: %d != %d", len(*statement.Values), len(table.columns))
-	}
-
 	for _, value := range *statement.Values {
 		if value.Kind != ast.LiteralKind {
 			fmt.Println("Skipping non-literal.")
@@ -71,8 +58,12 @@ func (mb *memoryBackend) insertIntoTable(statement *ast.InsertStatement) error {
 		row = append(row, mb.tokenToCell(value.Literal))
 	}
 
-	table.rows = append(table.rows, row)
-	return nil
+	cells := make([]models.Cell, len(row))
+	for i, cell := range row {
+		cells[i] = cell
+	}
+
+	return mb.memoryStorage.Insert(statement.Table.Value, cells)
 }
 
 func (mb *memoryBackend) tokenToCell(t *lex.Token) MemoryCell {
@@ -98,15 +89,15 @@ func (mb *memoryBackend) tokenToCell(t *lex.Token) MemoryCell {
 }
 
 func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*models.Table, error) {
-	table, ok := mb.tables[statement.From.Value]
-	if !ok {
-		return nil, fmt.Errorf("Table does not exist: %s", statement.From.Value)
+	table, err := mb.memoryStorage.Select(statement.From.Value)
+	if err != nil {
+		return nil, err
 	}
 
 	results := [][]models.Cell{}
 	columns := []models.Column{}
 
-	for i, row := range table.rows {
+	for i, row := range table.Rows {
 		result := []models.Cell{}
 		isFirstRow := i == 0
 
@@ -120,11 +111,11 @@ func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*model
 			lit := exp.Literal
 			if lit.Kind == lex.IdentifierToken {
 				found := false
-				for i, tableCol := range table.columns {
-					if tableCol == lit.Value {
+				for i, tableCol := range table.Columns {
+					if tableCol.Name == lit.Value {
 						if isFirstRow {
 							columns = append(columns, models.Column{
-								Type: table.columnTypes[i],
+								Type: tableCol.Type,
 								Name: lit.Value,
 							})
 						}

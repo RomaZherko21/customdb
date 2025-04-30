@@ -13,8 +13,6 @@ type MemoryBackendService interface {
 }
 
 type memoryBackend struct {
-	tables map[string]*table
-
 	memoryStorage     memory_storage.MemoryStorageService
 	persistentStorage persistent_storage.PersistentStorageService
 }
@@ -29,7 +27,6 @@ func NewMemoryBackend(config *config.Config) (MemoryBackendService, error) {
 	return &memoryBackend{
 		memoryStorage:     memoryStorage,
 		persistentStorage: persistentStorage,
-		tables:            map[string]*table{},
 	}, nil
 }
 
