@@ -6,7 +6,6 @@ import (
 	"custom-database/internal/backend"
 	"custom-database/internal/models"
 	"custom-database/internal/parser"
-	"custom-database/internal/parser/ast"
 	"flag"
 	"fmt"
 	"log"
@@ -49,11 +48,11 @@ func main() {
 
 func newLexVersion() {
 	mb := backend.NewMemoryBackend()
+	parser := parser.NewParser()
 
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Println("Welcome to gosql.")
 
-	parser := parser.NewParser()
 	for {
 		fmt.Print("# ")
 		text, err := reader.ReadString('\n')
@@ -62,70 +61,51 @@ func newLexVersion() {
 		result, err := parser.Parse(text)
 		if err != nil {
 			fmt.Println(err)
+			continue
 		}
 
-		for _, stmt := range result.Statements {
-			switch stmt.Kind {
-			case ast.CreateTableKind:
-				err = mb.CreateTable(result.Statements[0].CreateTableStatement)
-				if err != nil {
-					fmt.Println(err)
-					return
-				}
-				fmt.Println("ok")
-			case ast.DropTableKind:
-				err = mb.DropTable(stmt.DropTableStatement)
-				if err != nil {
-					fmt.Println(err)
-					return
-				}
-				fmt.Println("ok")
-			case ast.InsertKind:
-				err = mb.Insert(stmt.InsertStatement)
-				if err != nil {
-					fmt.Println(err)
-					return
-				}
+		results, err := mb.ExecuteStatement(result)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
 
-				fmt.Println("ok")
-			case ast.SelectKind:
-				results, err := mb.Select(stmt.SelectStatement)
-				if err != nil {
-					fmt.Println(err)
-					return
-				}
+		if results != nil {
+			printTable(results)
+			continue
+		}
 
-				for _, col := range results.Columns {
-					fmt.Printf("| %s ", col.Name)
-				}
-				fmt.Println("|")
+		fmt.Println("ok")
+	}
+}
 
-				for i := 0; i < 20; i++ {
-					fmt.Printf("=")
-				}
-				fmt.Println()
+func printTable(table *models.Table) {
+	for _, col := range table.Columns {
+		fmt.Printf("| %s ", col.Name)
+	}
+	fmt.Println("|")
 
-				for _, row := range results.Rows {
-					fmt.Printf("|")
+	for i := 0; i < 20; i++ {
+		fmt.Printf("=")
+	}
+	fmt.Println()
 
-					for i, cell := range row {
-						typ := results.Columns[i].Type
-						s := ""
-						switch typ {
-						case models.IntType:
-							s = fmt.Sprintf("%d", cell.AsInt())
-						case models.TextType:
-							s = cell.AsText()
-						}
+	for _, row := range table.Rows {
+		fmt.Printf("|")
 
-						fmt.Printf(" %s | ", s)
-					}
-
-					fmt.Println()
-				}
-
-				fmt.Println("ok")
+		for i, cell := range row {
+			typ := table.Columns[i].Type
+			s := ""
+			switch typ {
+			case models.IntType:
+				s = fmt.Sprintf("%d", cell.AsInt())
+			case models.TextType:
+				s = cell.AsText()
 			}
+
+			fmt.Printf(" %s | ", s)
 		}
+
+		fmt.Println()
 	}
 }

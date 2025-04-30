@@ -10,45 +10,58 @@ import (
 	"strconv"
 )
 
-type Backend interface {
-	CreateTable(*ast.CreateTableStatement) error
-	Insert(*ast.InsertStatement) error
-	Select(*ast.SelectStatement) (*models.Table, error)
+type MemoryBackendService interface {
+	ExecuteStatement(*ast.Ast) (*models.Table, error)
 }
 
-type MemoryCell []byte
-
-func (mc MemoryCell) AsInt() int32 {
-	var i int32
-	err := binary.Read(bytes.NewBuffer(mc), binary.BigEndian, &i)
-	if err != nil {
-		panic(err)
-	}
-
-	return i
-}
-
-func (mc MemoryCell) AsText() string {
-	return string(mc)
-}
-
-type table struct {
-	columns     []string
-	columnTypes []models.ColumnType
-	rows        [][]MemoryCell
-}
-
-type MemoryBackend struct {
+type memoryBackend struct {
 	tables map[string]*table
 }
 
-func NewMemoryBackend() *MemoryBackend {
-	return &MemoryBackend{
+func NewMemoryBackend() MemoryBackendService {
+	return &memoryBackend{
 		tables: map[string]*table{},
 	}
 }
 
-func (mb *MemoryBackend) CreateTable(statement *ast.CreateTableStatement) error {
+func (mb *memoryBackend) ExecuteStatement(a *ast.Ast) (*models.Table, error) {
+	var err error
+
+	for _, stmt := range a.Statements {
+		switch stmt.Kind {
+		case ast.CreateTableKind:
+			err = mb.createTable(a.Statements[0].CreateTableStatement)
+			if err != nil {
+				fmt.Println(err)
+				return nil, err
+			}
+		case ast.DropTableKind:
+			err = mb.dropTable(stmt.DropTableStatement)
+			if err != nil {
+				fmt.Println(err)
+				return nil, err
+			}
+		case ast.InsertKind:
+			err = mb.Insert(stmt.InsertStatement)
+			if err != nil {
+				fmt.Println(err)
+				return nil, err
+			}
+		case ast.SelectKind:
+			results, err := mb.Select(stmt.SelectStatement)
+			if err != nil {
+				fmt.Println(err)
+				return nil, err
+			}
+
+			return results, nil
+		}
+	}
+
+	return nil, nil
+}
+
+func (mb *memoryBackend) createTable(statement *ast.CreateTableStatement) error {
 	t := table{}
 	mb.tables[statement.Name.Value] = &t
 	if statement.Cols == nil {
@@ -74,7 +87,7 @@ func (mb *MemoryBackend) CreateTable(statement *ast.CreateTableStatement) error 
 	return nil
 }
 
-func (mb *MemoryBackend) DropTable(statement *ast.DropTableStatement) error {
+func (mb *memoryBackend) dropTable(statement *ast.DropTableStatement) error {
 	_, ok := mb.tables[statement.Table.Value]
 	if !ok {
 		return fmt.Errorf("Table does not exist: %s", statement.Table.Value)
@@ -84,7 +97,7 @@ func (mb *MemoryBackend) DropTable(statement *ast.DropTableStatement) error {
 	return nil
 }
 
-func (mb *MemoryBackend) Insert(statement *ast.InsertStatement) error {
+func (mb *memoryBackend) Insert(statement *ast.InsertStatement) error {
 	table, ok := mb.tables[statement.Table.Value]
 	if !ok {
 		return fmt.Errorf("Table does not exist: %s", statement.Table.Value)
@@ -113,7 +126,7 @@ func (mb *MemoryBackend) Insert(statement *ast.InsertStatement) error {
 	return nil
 }
 
-func (mb *MemoryBackend) tokenToCell(t *lex.Token) MemoryCell {
+func (mb *memoryBackend) tokenToCell(t *lex.Token) MemoryCell {
 	if t.Kind == lex.NumericToken {
 		buf := new(bytes.Buffer)
 		i, err := strconv.Atoi(t.Value)
@@ -135,7 +148,7 @@ func (mb *MemoryBackend) tokenToCell(t *lex.Token) MemoryCell {
 	return nil
 }
 
-func (mb *MemoryBackend) Select(statement *ast.SelectStatement) (*models.Table, error) {
+func (mb *memoryBackend) Select(statement *ast.SelectStatement) (*models.Table, error) {
 	table, ok := mb.tables[statement.From.Value]
 	if !ok {
 		return nil, fmt.Errorf("Table does not exist: %s", statement.From.Value)
