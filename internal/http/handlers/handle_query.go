@@ -1,10 +1,10 @@
 package handlers
 
-import (
-	"encoding/json"
+// import (
+// 	"encoding/json"
 
-	"github.com/gin-gonic/gin"
-)
+// 	"github.com/gin-gonic/gin"
+// )
 
 type SqlQueryRequest struct {
 	Query string `json:"query" binding:"required" example:"SELECT id, name FROM users;"`
@@ -26,47 +26,48 @@ type SqlQueryResponse struct {
 // @Success 200 {object} SqlQueryResponse
 // @Failure 400 {object} SqlQueryResponse
 // @Router /query [post]
-func (h *handlers) HandleSqlQuery(c *gin.Context) {
-	var request SqlQueryRequest
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(400, SqlQueryResponse{
-			Success: false,
-			Error:   err.Error(),
-		})
-		return
-	}
 
-	query := request.Query
+// func (h *handlers) HandleSqlQuery(c *gin.Context) {
+// 	var request SqlQueryRequest
+// 	if err := c.ShouldBindJSON(&request); err != nil {
+// 		c.JSON(400, SqlQueryResponse{
+// 			Success: false,
+// 			Error:   err.Error(),
+// 		})
+// 		return
+// 	}
 
-	result, err := h.lexer.ParseQuery(query)
-	if err != nil {
-		c.JSON(400, SqlQueryResponse{
-			Success: false,
-			Error:   err.Error(),
-		})
-		return
-	}
+// 	query := request.Query
 
-	if result == nil {
-		c.JSON(200, SqlQueryResponse{
-			Success: true,
-			Result:  "Query executed successfully",
-		})
-		return
-	}
+// 	result, err := h.lexer.ParseQuery(query)
+// 	if err != nil {
+// 		c.JSON(400, SqlQueryResponse{
+// 			Success: false,
+// 			Error:   err.Error(),
+// 		})
+// 		return
+// 	}
 
-	// Конвертируем результат в JSON строку
-	jsonResult, err := json.Marshal(result)
-	if err != nil {
-		c.JSON(400, SqlQueryResponse{
-			Success: false,
-			Error:   "Error converting result to JSON: " + err.Error(),
-		})
-		return
-	}
+// 	if result == nil {
+// 		c.JSON(200, SqlQueryResponse{
+// 			Success: true,
+// 			Result:  "Query executed successfully",
+// 		})
+// 		return
+// 	}
 
-	c.JSON(200, SqlQueryResponse{
-		Success: true,
-		Result:  string(jsonResult),
-	})
-}
+// 	// Конвертируем результат в JSON строку
+// 	jsonResult, err := json.Marshal(result)
+// 	if err != nil {
+// 		c.JSON(400, SqlQueryResponse{
+// 			Success: false,
+// 			Error:   "Error converting result to JSON: " + err.Error(),
+// 		})
+// 		return
+// 	}
+
+// 	c.JSON(200, SqlQueryResponse{
+// 		Success: true,
+// 		Result:  string(jsonResult),
+// 	})
+// }
