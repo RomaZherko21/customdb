@@ -23,7 +23,7 @@ func (s *ast) Parse(query string) (*Ast, error) {
 		return nil, err
 	}
 
-	a := Ast{}
+	result := Ast{}
 	cursor := uint(0)
 	for cursor < uint(len(tokens)) {
 		statement, newCursor, ok := parseStatement(tokens, cursor, tokenFromSymbol(lex.SemicolonSymbol))
@@ -33,7 +33,7 @@ func (s *ast) Parse(query string) (*Ast, error) {
 		}
 		cursor = newCursor
 
-		a.Statements = append(a.Statements, statement)
+		result.Statements = append(result.Statements, statement)
 
 		atLeastOneSemicolon := false
 		for expectToken(tokens, cursor, tokenFromSymbol(lex.SemicolonSymbol)) {
@@ -47,7 +47,7 @@ func (s *ast) Parse(query string) (*Ast, error) {
 		}
 	}
 
-	return &a, nil
+	return &result, nil
 }
 
 func parseStatement(tokens []*lex.Token, initialCursor uint, delimiter lex.Token) (*Statement, uint, bool) {

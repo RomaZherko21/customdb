@@ -4,6 +4,7 @@ import (
 	"bufio"
 	// "custom-database/config"
 	"custom-database/internal/backend"
+	"custom-database/internal/models"
 	"custom-database/internal/parser"
 	"custom-database/internal/parser/ast"
 	"flag"
@@ -111,9 +112,9 @@ func newLexVersion() {
 						typ := results.Columns[i].Type
 						s := ""
 						switch typ {
-						case backend.IntType:
+						case models.IntType:
 							s = fmt.Sprintf("%d", cell.AsInt())
-						case backend.TextType:
+						case models.TextType:
 							s = cell.AsText()
 						}
 

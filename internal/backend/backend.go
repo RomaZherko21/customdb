@@ -2,48 +2,18 @@ package backend
 
 import (
 	"bytes"
+	"custom-database/internal/models"
 	"custom-database/internal/parser/ast"
 	"custom-database/internal/parser/lex"
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"strconv"
-)
-
-type ColumnType uint
-
-type Column struct {
-	Name string
-	Type ColumnType
-}
-
-const (
-	TextType ColumnType = iota
-	IntType
-)
-
-type Cell interface {
-	AsText() string
-	AsInt() int32
-}
-
-type Results struct {
-	Columns []Column
-	Rows    [][]Cell
-}
-
-var (
-	ErrTableDoesNotExist  = errors.New("Table does not exist")
-	ErrColumnDoesNotExist = errors.New("Column does not exist")
-	ErrInvalidSelectItem  = errors.New("Select item is not valid")
-	ErrInvalidDatatype    = errors.New("Invalid datatype")
-	ErrMissingValues      = errors.New("Missing values")
 )
 
 type Backend interface {
 	CreateTable(*ast.CreateTableStatement) error
 	Insert(*ast.InsertStatement) error
-	Select(*ast.SelectStatement) (*Results, error)
+	Select(*ast.SelectStatement) (*models.Table, error)
 }
 
 type MemoryCell []byte
@@ -64,7 +34,7 @@ func (mc MemoryCell) AsText() string {
 
 type table struct {
 	columns     []string
-	columnTypes []ColumnType
+	columnTypes []models.ColumnType
 	rows        [][]MemoryCell
 }
 
@@ -88,14 +58,14 @@ func (mb *MemoryBackend) CreateTable(statement *ast.CreateTableStatement) error 
 	for _, col := range *statement.Cols {
 		t.columns = append(t.columns, col.Name.Value)
 
-		var dt ColumnType
+		var dt models.ColumnType
 		switch col.Datatype.Value {
 		case "int":
-			dt = IntType
+			dt = models.IntType
 		case "text":
-			dt = TextType
+			dt = models.TextType
 		default:
-			return ErrInvalidDatatype
+			return fmt.Errorf("Invalid datatype: %s", col.Datatype.Value)
 		}
 
 		t.columnTypes = append(t.columnTypes, dt)
@@ -107,7 +77,7 @@ func (mb *MemoryBackend) CreateTable(statement *ast.CreateTableStatement) error 
 func (mb *MemoryBackend) DropTable(statement *ast.DropTableStatement) error {
 	_, ok := mb.tables[statement.Table.Value]
 	if !ok {
-		return ErrTableDoesNotExist
+		return fmt.Errorf("Table does not exist: %s", statement.Table.Value)
 	}
 
 	delete(mb.tables, statement.Table.Value)
@@ -117,7 +87,7 @@ func (mb *MemoryBackend) DropTable(statement *ast.DropTableStatement) error {
 func (mb *MemoryBackend) Insert(statement *ast.InsertStatement) error {
 	table, ok := mb.tables[statement.Table.Value]
 	if !ok {
-		return ErrTableDoesNotExist
+		return fmt.Errorf("Table does not exist: %s", statement.Table.Value)
 	}
 
 	if statement.Values == nil {
@@ -127,7 +97,7 @@ func (mb *MemoryBackend) Insert(statement *ast.InsertStatement) error {
 	row := []MemoryCell{}
 
 	if len(*statement.Values) != len(table.columns) {
-		return ErrMissingValues
+		return fmt.Errorf("Missing values: %d != %d", len(*statement.Values), len(table.columns))
 	}
 
 	for _, value := range *statement.Values {
@@ -165,17 +135,17 @@ func (mb *MemoryBackend) tokenToCell(t *lex.Token) MemoryCell {
 	return nil
 }
 
-func (mb *MemoryBackend) Select(statement *ast.SelectStatement) (*Results, error) {
+func (mb *MemoryBackend) Select(statement *ast.SelectStatement) (*models.Table, error) {
 	table, ok := mb.tables[statement.From.Value]
 	if !ok {
-		return nil, ErrTableDoesNotExist
+		return nil, fmt.Errorf("Table does not exist: %s", statement.From.Value)
 	}
 
-	results := [][]Cell{}
-	columns := []Column{}
+	results := [][]models.Cell{}
+	columns := []models.Column{}
 
 	for i, row := range table.rows {
-		result := []Cell{}
+		result := []models.Cell{}
 		isFirstRow := i == 0
 
 		for _, exp := range statement.Item {
@@ -191,7 +161,7 @@ func (mb *MemoryBackend) Select(statement *ast.SelectStatement) (*Results, error
 				for i, tableCol := range table.columns {
 					if tableCol == lit.Value {
 						if isFirstRow {
-							columns = append(columns, Column{
+							columns = append(columns, models.Column{
 								Type: table.columnTypes[i],
 								Name: lit.Value,
 							})
@@ -204,19 +174,19 @@ func (mb *MemoryBackend) Select(statement *ast.SelectStatement) (*Results, error
 				}
 
 				if !found {
-					return nil, ErrColumnDoesNotExist
+					return nil, fmt.Errorf("Column does not exist: %s", lit.Value)
 				}
 
 				continue
 			}
 
-			return nil, ErrColumnDoesNotExist
+			return nil, fmt.Errorf("Column does not exist: %s", lit.Value)
 		}
 
 		results = append(results, result)
 	}
 
-	return &Results{
+	return &models.Table{
 		Columns: columns,
 		Rows:    results,
 	}, nil

@@ -1,10 +1,5 @@
 package models
 
-import (
-	"bytes"
-	"encoding/binary"
-)
-
 type ColumnType uint
 
 type Column struct {
@@ -28,18 +23,18 @@ type Table struct {
 	Rows    [][]Cell
 }
 
-type MemoryCell []byte
+// type MemoryCell []byte
 
-func (mc MemoryCell) AsInt() int32 {
-	var i int32
-	err := binary.Read(bytes.NewBuffer(mc), binary.BigEndian, &i)
-	if err != nil {
-		panic(err)
-	}
+// func (mc MemoryCell) AsInt() int32 {
+// 	var i int32
+// 	err := binary.Read(bytes.NewBuffer(mc), binary.BigEndian, &i)
+// 	if err != nil {
+// 		panic(err)
+// 	}
 
-	return i
-}
+// 	return i
+// }
 
-func (mc MemoryCell) AsText() string {
-	return string(mc)
-}
+// func (mc MemoryCell) AsText() string {
+// 	return string(mc)
+// }
