@@ -2,8 +2,8 @@ package backend
 
 import (
 	"bytes"
-	"custom-database/internal/ast"
-	"custom-database/internal/lex"
+	"custom-database/internal/parser/ast"
+	"custom-database/internal/parser/lex"
 	"encoding/binary"
 	"errors"
 	"fmt"

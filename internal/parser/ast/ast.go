@@ -1,44 +1,10 @@
 package ast
 
 import (
-	"custom-database/internal/lex"
-	"errors"
+	"custom-database/internal/parser/lex"
 )
 
-func Parse(source string) (*Ast, error) {
-	tokens, err := lex.Lex(source)
-	if err != nil {
-		return nil, err
-	}
-
-	a := Ast{}
-	cursor := uint(0)
-	for cursor < uint(len(tokens)) {
-		statement, newCursor, ok := parseStatement(tokens, cursor, lex.TokenFromSymbol(lex.SemicolonSymbol))
-		if !ok {
-			lex.HelpMessage(tokens, cursor, "Expected statement")
-			return nil, errors.New("Failed to parse, expected statement")
-		}
-		cursor = newCursor
-
-		a.Statements = append(a.Statements, statement)
-
-		atLeastOneSemicolon := false
-		for lex.ExpectToken(tokens, cursor, lex.TokenFromSymbol(lex.SemicolonSymbol)) {
-			cursor++
-			atLeastOneSemicolon = true
-		}
-
-		if !atLeastOneSemicolon {
-			lex.HelpMessage(tokens, cursor, "Expected semi-colon delimiter between statements")
-			return nil, errors.New("Missing semi-colon between statements")
-		}
-	}
-
-	return &a, nil
-}
-
-func parseStatement(tokens []*lex.Token, initialCursor uint, delimiter lex.Token) (*Statement, uint, bool) {
+func ParseStatement(tokens []*lex.Token, initialCursor uint, delimiter lex.Token) (*Statement, uint, bool) {
 	cursor := initialCursor
 
 	// Look for a SELECT statement

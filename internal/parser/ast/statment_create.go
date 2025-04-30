@@ -1,6 +1,6 @@
 package ast
 
-import "custom-database/internal/lex"
+import "custom-database/internal/parser/lex"
 
 type CreateTableStatement struct {
 	Name lex.Token

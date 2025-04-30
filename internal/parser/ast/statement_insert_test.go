@@ -1,7 +1,7 @@
 package ast
 
 import (
-	"custom-database/internal/lex"
+	"custom-database/internal/parser/lex"
 	"testing"
 
 	"github.com/stretchr/testify/require"

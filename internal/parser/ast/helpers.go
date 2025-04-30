@@ -1,6 +1,6 @@
 package ast
 
-import "custom-database/internal/lex"
+import "custom-database/internal/parser/lex"
 
 func parseExpressions(tokens []*lex.Token, initialCursor uint, delimiters []lex.Token) (*[]*Expression, uint, bool) {
 	cursor := initialCursor

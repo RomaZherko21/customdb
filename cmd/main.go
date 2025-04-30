@@ -3,8 +3,9 @@ package main
 import (
 	"bufio"
 	// "custom-database/config"
-	"custom-database/internal/ast"
 	"custom-database/internal/backend"
+	"custom-database/internal/parser"
+	"custom-database/internal/parser/ast"
 	"flag"
 	"fmt"
 	"log"
@@ -50,12 +51,14 @@ func newLexVersion() {
 
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Println("Welcome to gosql.")
+
+	parser := parser.NewParser()
 	for {
 		fmt.Print("# ")
 		text, err := reader.ReadString('\n')
 		text = strings.Replace(text, "\n", "", -1)
 
-		result, err := ast.Parse(text)
+		result, err := parser.Parse(text)
 		if err != nil {
 			fmt.Println(err)
 		}
