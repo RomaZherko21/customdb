@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	// "custom-database/config"
+	"custom-database/config"
 	"custom-database/internal/backend"
 	"custom-database/internal/models"
 	"custom-database/internal/parser"
@@ -19,18 +19,20 @@ import (
 // @host localhost:8080
 // @BasePath /
 func main() {
-	// cfg, err := config.Load()
-	// if err != nil {
-	// 	log.Fatal("Error loading config:", err)
-	// }
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal("Error loading config:", err)
+	}
 
 	mode := flag.String("mode", "console", "Режим работы: console или http")
 	// port := flag.String("port", cfg.Port, "Порт для HTTP сервера")
 	flag.Parse()
 
-	// storage := storage.NewStorage(cfg)
-	// executor := executor.NewExecutor(storage)
-	// lexer := lexer.NewLexer(executor)
+	parser := parser.NewParser()
+	mb, err := backend.NewMemoryBackend(cfg)
+	if err != nil {
+		log.Fatal("Error creating memory backend:", err)
+	}
 
 	// handlers := handlers.NewHttpHandlers(lexer)
 
@@ -40,16 +42,13 @@ func main() {
 	case "http":
 		// http_mode.RunHttpServer(handlers, *port)
 	case "lex":
-		newLexVersion()
+		newLexVersion(parser, mb)
 	default:
 		log.Fatal("Неизвестный режим работы. Используйте 'console' или 'http'")
 	}
 }
 
-func newLexVersion() {
-	mb := backend.NewMemoryBackend()
-	parser := parser.NewParser()
-
+func newLexVersion(parser parser.ParserService, mb backend.MemoryBackendService) {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Println("Welcome to gosql.")
 

@@ -2,9 +2,12 @@ package backend
 
 import (
 	"bytes"
+	"custom-database/config"
 	"custom-database/internal/models"
 	"custom-database/internal/parser/ast"
 	"custom-database/internal/parser/lex"
+	"custom-database/internal/storage/memory_storage"
+	"custom-database/internal/storage/persistent_storage"
 	"encoding/binary"
 	"fmt"
 	"strconv"
@@ -16,12 +19,23 @@ type MemoryBackendService interface {
 
 type memoryBackend struct {
 	tables map[string]*table
+
+	memoryStorage     memory_storage.MemoryStorageService
+	persistentStorage persistent_storage.PersistentStorageService
 }
 
-func NewMemoryBackend() MemoryBackendService {
-	return &memoryBackend{
-		tables: map[string]*table{},
+func NewMemoryBackend(config *config.Config) (MemoryBackendService, error) {
+	memoryStorage := memory_storage.NewMemoryStorage()
+	persistentStorage, err := persistent_storage.NewPersistentStorage(config)
+	if err != nil {
+		return nil, err
 	}
+
+	return &memoryBackend{
+		memoryStorage:     memoryStorage,
+		persistentStorage: persistentStorage,
+		tables:            map[string]*table{},
+	}, nil
 }
 
 func (mb *memoryBackend) ExecuteStatement(a *ast.Ast) (*models.Table, error) {
@@ -30,27 +44,23 @@ func (mb *memoryBackend) ExecuteStatement(a *ast.Ast) (*models.Table, error) {
 	for _, stmt := range a.Statements {
 		switch stmt.Kind {
 		case ast.CreateTableKind:
-			err = mb.createTable(a.Statements[0].CreateTableStatement)
+			err = mb.createTable(stmt.CreateTableStatement)
 			if err != nil {
-				fmt.Println(err)
 				return nil, err
 			}
 		case ast.DropTableKind:
 			err = mb.dropTable(stmt.DropTableStatement)
 			if err != nil {
-				fmt.Println(err)
 				return nil, err
 			}
 		case ast.InsertKind:
-			err = mb.Insert(stmt.InsertStatement)
+			err = mb.insertIntoTable(stmt.InsertStatement)
 			if err != nil {
-				fmt.Println(err)
 				return nil, err
 			}
 		case ast.SelectKind:
-			results, err := mb.Select(stmt.SelectStatement)
+			results, err := mb.selectFromTable(stmt.SelectStatement)
 			if err != nil {
-				fmt.Println(err)
 				return nil, err
 			}
 
@@ -97,7 +107,7 @@ func (mb *memoryBackend) dropTable(statement *ast.DropTableStatement) error {
 	return nil
 }
 
-func (mb *memoryBackend) Insert(statement *ast.InsertStatement) error {
+func (mb *memoryBackend) insertIntoTable(statement *ast.InsertStatement) error {
 	table, ok := mb.tables[statement.Table.Value]
 	if !ok {
 		return fmt.Errorf("Table does not exist: %s", statement.Table.Value)
@@ -148,7 +158,7 @@ func (mb *memoryBackend) tokenToCell(t *lex.Token) MemoryCell {
 	return nil
 }
 
-func (mb *memoryBackend) Select(statement *ast.SelectStatement) (*models.Table, error) {
+func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*models.Table, error) {
 	table, ok := mb.tables[statement.From.Value]
 	if !ok {
 		return nil, fmt.Errorf("Table does not exist: %s", statement.From.Value)

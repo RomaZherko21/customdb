@@ -8,14 +8,14 @@ type ParserService interface {
 	Parse(query string) (*ast.Ast, error)
 }
 
-type Parser struct {
+type parser struct {
 }
 
 func NewParser() ParserService {
-	return &Parser{}
+	return &parser{}
 }
 
-func (p *Parser) Parse(query string) (*ast.Ast, error) {
+func (p *parser) Parse(query string) (*ast.Ast, error) {
 	astService := ast.NewAst()
 	return astService.Parse(query)
 }
