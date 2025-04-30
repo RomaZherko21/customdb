@@ -12,6 +12,11 @@ import (
 
 type ColumnType uint
 
+type Column struct {
+	Name string
+	Type ColumnType
+}
+
 const (
 	TextType ColumnType = iota
 	IntType
@@ -23,11 +28,8 @@ type Cell interface {
 }
 
 type Results struct {
-	Columns []struct {
-		Type ColumnType
-		Name string
-	}
-	Rows [][]Cell
+	Columns []Column
+	Rows    [][]Cell
 }
 
 var (
@@ -170,10 +172,7 @@ func (mb *MemoryBackend) Select(statement *ast.SelectStatement) (*Results, error
 	}
 
 	results := [][]Cell{}
-	columns := []struct {
-		Type ColumnType
-		Name string
-	}{}
+	columns := []Column{}
 
 	for i, row := range table.rows {
 		result := []Cell{}
@@ -192,10 +191,7 @@ func (mb *MemoryBackend) Select(statement *ast.SelectStatement) (*Results, error
 				for i, tableCol := range table.columns {
 					if tableCol == lit.Value {
 						if isFirstRow {
-							columns = append(columns, struct {
-								Type ColumnType
-								Name string
-							}{
+							columns = append(columns, Column{
 								Type: table.columnTypes[i],
 								Name: lit.Value,
 							})
