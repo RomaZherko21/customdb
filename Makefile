@@ -4,8 +4,6 @@ run:
 run-http:
 	go run ./cmd/main.go -mode http -port 8080
 
-run2:
-	go run ./cmd/main.go -mode lex
 
 test:
 	go test ./internal/... -v
