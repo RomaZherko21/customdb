@@ -2,11 +2,6 @@ package ast
 
 import "custom-database/internal/parser/lex"
 
-type CreateTableStatement struct {
-	Name lex.Token
-	Cols *[]*columnDefinition
-}
-
 type columnDefinition struct {
 	Name     lex.Token
 	Datatype lex.Token
@@ -15,37 +10,37 @@ type columnDefinition struct {
 func parseCreateTableStatement(tokens []*lex.Token, initialCursor uint, delimiter lex.Token) (*CreateTableStatement, uint, bool) {
 	cursor := initialCursor
 
-	if !lex.ExpectToken(tokens, cursor, lex.TokenFromKeyword(lex.CreateKeyword)) {
+	if !expectToken(tokens, cursor, tokenFromKeyword(lex.CreateKeyword)) {
 		return nil, initialCursor, false
 	}
 	cursor++
 
-	if !lex.ExpectToken(tokens, cursor, lex.TokenFromKeyword(lex.TableKeyword)) {
+	if !expectToken(tokens, cursor, tokenFromKeyword(lex.TableKeyword)) {
 		return nil, initialCursor, false
 	}
 	cursor++
 
-	name, newCursor, ok := lex.ParseToken(tokens, cursor, lex.IdentifierToken)
+	name, newCursor, ok := parseToken(tokens, cursor, lex.IdentifierToken)
 	if !ok {
-		lex.HelpMessage(tokens, cursor, "Expected table name")
+		helpMessage(tokens, cursor, "Expected table name")
 		return nil, initialCursor, false
 	}
 	cursor = newCursor
 
-	if !lex.ExpectToken(tokens, cursor, lex.TokenFromSymbol(lex.LeftparenSymbol)) {
-		lex.HelpMessage(tokens, cursor, "Expected left parenthesis")
+	if !expectToken(tokens, cursor, tokenFromSymbol(lex.LeftparenSymbol)) {
+		helpMessage(tokens, cursor, "Expected left parenthesis")
 		return nil, initialCursor, false
 	}
 	cursor++
 
-	cols, newCursor, ok := parseColumnDefinitions(tokens, cursor, lex.TokenFromSymbol(lex.RightparenSymbol))
+	cols, newCursor, ok := parseColumnDefinitions(tokens, cursor, tokenFromSymbol(lex.RightparenSymbol))
 	if !ok {
 		return nil, initialCursor, false
 	}
 	cursor = newCursor
 
-	if !lex.ExpectToken(tokens, cursor, lex.TokenFromSymbol(lex.RightparenSymbol)) {
-		lex.HelpMessage(tokens, cursor, "Expected right parenthesis")
+	if !expectToken(tokens, cursor, tokenFromSymbol(lex.RightparenSymbol)) {
+		helpMessage(tokens, cursor, "Expected right parenthesis")
 		return nil, initialCursor, false
 	}
 	cursor++
@@ -73,8 +68,8 @@ func parseColumnDefinitions(tokens []*lex.Token, initialCursor uint, endDelimite
 
 		// Look for a comma
 		if len(cds) > 0 {
-			if !lex.ExpectToken(tokens, cursor, lex.TokenFromSymbol(lex.CommaSymbol)) {
-				lex.HelpMessage(tokens, cursor, "Expected comma")
+			if !expectToken(tokens, cursor, tokenFromSymbol(lex.CommaSymbol)) {
+				helpMessage(tokens, cursor, "Expected comma")
 				return nil, initialCursor, false
 			}
 
@@ -82,17 +77,17 @@ func parseColumnDefinitions(tokens []*lex.Token, initialCursor uint, endDelimite
 		}
 
 		// Look for a column name
-		columnName, newCursor, ok := lex.ParseToken(tokens, cursor, lex.IdentifierToken)
+		columnName, newCursor, ok := parseToken(tokens, cursor, lex.IdentifierToken)
 		if !ok {
-			lex.HelpMessage(tokens, cursor, "Expected column name")
+			helpMessage(tokens, cursor, "Expected column name")
 			return nil, initialCursor, false
 		}
 		cursor = newCursor
 
 		// Look for a column type
-		columnType, newCursor, ok := lex.ParseToken(tokens, cursor, lex.KeywordToken)
+		columnType, newCursor, ok := parseToken(tokens, cursor, lex.KeywordToken)
 		if !ok {
-			lex.HelpMessage(tokens, cursor, "Expected column type")
+			helpMessage(tokens, cursor, "Expected column type")
 			return nil, initialCursor, false
 		}
 		cursor = newCursor

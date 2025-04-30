@@ -1,22 +1,22 @@
 package lex
 
-type keyword string
+type Keyword string
 
 const (
-	SelectKeyword keyword = "select"
-	FromKeyword   keyword = "from"
-	AsKeyword     keyword = "as"
-	TableKeyword  keyword = "table"
-	CreateKeyword keyword = "create"
-	InsertKeyword keyword = "insert"
-	IntoKeyword   keyword = "into"
-	ValuesKeyword keyword = "values"
-	IntKeyword    keyword = "int"
-	TextKeyword   keyword = "text"
-	DropKeyword   keyword = "drop"
+	SelectKeyword Keyword = "select"
+	FromKeyword   Keyword = "from"
+	AsKeyword     Keyword = "as"
+	TableKeyword  Keyword = "table"
+	CreateKeyword Keyword = "create"
+	InsertKeyword Keyword = "insert"
+	IntoKeyword   Keyword = "into"
+	ValuesKeyword Keyword = "values"
+	IntKeyword    Keyword = "int"
+	TextKeyword   Keyword = "text"
+	DropKeyword   Keyword = "drop"
 )
 
-var keywords = []keyword{
+var keywords = []Keyword{
 	SelectKeyword,
 	InsertKeyword,
 	ValuesKeyword,
@@ -29,17 +29,17 @@ var keywords = []keyword{
 	DropKeyword,
 }
 
-type symbol string
+type Symbol string
 
 const (
-	SemicolonSymbol  symbol = ";"
-	AsteriskSymbol   symbol = "*"
-	CommaSymbol      symbol = ","
-	LeftparenSymbol  symbol = "("
-	RightparenSymbol symbol = ")"
+	SemicolonSymbol  Symbol = ";"
+	AsteriskSymbol   Symbol = "*"
+	CommaSymbol      Symbol = ","
+	LeftparenSymbol  Symbol = "("
+	RightparenSymbol Symbol = ")"
 )
 
-var symbols = []symbol{
+var symbols = []Symbol{
 	CommaSymbol,
 	LeftparenSymbol,
 	RightparenSymbol,

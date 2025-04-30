@@ -33,3 +33,22 @@ type Expression struct {
 	Literal *lex.Token
 	Kind    ExpressionKind
 }
+
+type CreateTableStatement struct {
+	Name lex.Token
+	Cols *[]*columnDefinition
+}
+
+type DropTableStatement struct {
+	Table lex.Token
+}
+
+type InsertStatement struct {
+	Table  lex.Token
+	Values *[]*Expression
+}
+
+type SelectStatement struct {
+	Item []*Expression
+	From lex.Token
+}

@@ -23,7 +23,7 @@ func TestLex(t *testing.T) {
 			{Kind: SymbolToken, Value: ";"},
 		}
 
-		got, err := Lex(input)
+		got, err := NewLexer().Lex(input)
 
 		require.NoError(t, err)
 
@@ -55,7 +55,7 @@ func TestLex(t *testing.T) {
 			{Kind: SymbolToken, Value: ";"},
 		}
 
-		got, err := Lex(input)
+		got, err := NewLexer().Lex(input)
 
 		require.NoError(t, err)
 
@@ -79,7 +79,7 @@ func TestLex(t *testing.T) {
 			{Kind: SymbolToken, Value: ";"},
 		}
 
-		got, err := Lex(input)
+		got, err := NewLexer().Lex(input)
 
 		require.NoError(t, err)
 
@@ -100,7 +100,7 @@ func TestLex(t *testing.T) {
 			{Kind: SymbolToken, Value: ";"},
 		}
 
-		got, err := Lex(input)
+		got, err := NewLexer().Lex(input)
 
 		require.NoError(t, err)
 
@@ -115,7 +115,7 @@ func TestLex(t *testing.T) {
 	t.Run("invalid SQL", func(t *testing.T) {
 		input := "SELECT ===;"
 
-		_, err := Lex(input)
+		_, err := NewLexer().Lex(input)
 
 		require.Error(t, err)
 	})
@@ -123,7 +123,7 @@ func TestLex(t *testing.T) {
 	t.Run("invalid input", func(t *testing.T) {
 		input := "SELECT * FROM users WHERE id = @1;"
 
-		_, err := Lex(input)
+		_, err := NewLexer().Lex(input)
 
 		require.Error(t, err)
 	})

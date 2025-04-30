@@ -4,9 +4,20 @@ import (
 	"fmt"
 )
 
+type Lexer interface {
+	Lex(source string) ([]*Token, error)
+}
+
+type lex struct {
+}
+
+func NewLexer() Lexer {
+	return &lex{}
+}
+
 type lexer func(string, Cursor) (*Token, Cursor, bool)
 
-func Lex(source string) ([]*Token, error) {
+func (l *lex) Lex(source string) ([]*Token, error) {
 	tokens := []*Token{}
 	cur := Cursor{}
 
