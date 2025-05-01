@@ -5,6 +5,9 @@ INSERT INTO users VALUES (2, 'Moris');
 
 SELECT id, name FROM users;
 
+SELECT name FROM users;
+SELECT id FROM users;
+
 DROP TABLE users;
 
 

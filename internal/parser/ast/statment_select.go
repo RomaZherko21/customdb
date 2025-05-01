@@ -16,7 +16,7 @@ func parseSelectStatement(tokens []*lex.Token, initialCursor uint, delimiter lex
 		return nil, initialCursor, false
 	}
 
-	slct.Item = *exps
+	slct.SelectedColumns = *exps
 	cursor = newCursor
 
 	if expectToken(tokens, cursor, tokenFromKeyword(lex.FromKeyword)) {

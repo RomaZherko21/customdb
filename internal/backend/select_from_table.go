@@ -6,6 +6,7 @@ import (
 	"custom-database/internal/parser/ast"
 	"encoding/binary"
 	"fmt"
+	"slices"
 )
 
 func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*models.Table, error) {
@@ -19,12 +20,37 @@ func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*model
 		return nil, err
 	}
 
-	results := [][]models.Cell{}
+	//// FILTERING
+	selectedColumnNames := []string{}
+	for _, value := range statement.SelectedColumns {
+		selectedColumnNames = append(selectedColumnNames, value.Literal.Value)
+	}
+
+	for i, row := range table.Rows {
+		resultRow := []interface{}{}
+		for i, column := range table.Columns {
+			if slices.Contains(selectedColumnNames, column.Name) {
+				resultRow = append(resultRow, row[i])
+			}
+		}
+
+		table.Rows[i] = resultRow
+	}
+	newColumns := []models.Column{}
+	for _, column := range table.Columns {
+		if slices.Contains(selectedColumnNames, column.Name) {
+			newColumns = append(newColumns, column)
+		}
+	}
+	table.Columns = newColumns
+	////
+
+	rows := [][]models.Cell{}
 
 	for _, row := range table.Rows {
-		result := []models.Cell{}
+		newRow := []models.Cell{}
 		for i, cell := range row {
-			column := table.Columns[i]
+			column := newColumns[i]
 			var memoryCell MemoryCell
 
 			if column.Type == models.IntType {
@@ -40,13 +66,13 @@ func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*model
 				memoryCell = MemoryCell(cell.(string))
 			}
 
-			result = append(result, memoryCell)
+			newRow = append(newRow, memoryCell)
 		}
-		results = append(results, result)
+		rows = append(rows, newRow)
 	}
 
 	return &models.Table{
-		Columns: table.Columns,
-		Rows:    results,
+		Columns: newColumns,
+		Rows:    rows,
 	}, nil
 }

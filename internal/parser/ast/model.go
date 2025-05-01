@@ -49,6 +49,6 @@ type InsertStatement struct {
 }
 
 type SelectStatement struct {
-	Item []*Expression
-	From lex.Token
+	SelectedColumns []*Expression
+	From            lex.Token
 }
