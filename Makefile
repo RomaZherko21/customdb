@@ -8,7 +8,7 @@ run-http:
 test:
 	go test ./internal/... -v
 
-e2e:
+test-e2e:
 	go test ./e2e/... -v
 
 generate:
