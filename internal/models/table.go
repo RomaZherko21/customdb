@@ -3,8 +3,8 @@ package models
 type ColumnType uint
 
 type Column struct {
-	Name string
-	Type ColumnType
+	Name string     `json:"name"`
+	Type ColumnType `json:"type"`
 }
 
 const (
@@ -18,9 +18,9 @@ type Cell interface {
 }
 
 type Table struct {
-	Name    string
-	Columns []Column
-	Rows    [][]Cell
+	Name    string   `json:"name"`
+	Columns []Column `json:"columns"`
+	Rows    [][]Cell `json:"rows"`
 }
 
 // type MemoryCell []byte

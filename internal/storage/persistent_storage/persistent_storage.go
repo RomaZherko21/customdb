@@ -12,8 +12,9 @@ import (
 type PersistentStorageService interface {
 	CreateTable(tableName string, columns []models.Column) error
 	DropTable(tableName string) error
-	Insert(tableName string, newValues []models.Cell) error
-	Select(tableName string) (*models.Table, error)
+	Insert(tableName string, values []interface{}) error
+	Select(tableName string) (*table, error)
+	GetTableColumns(tableName string) ([]models.Column, error)
 }
 
 type persistentStorage struct {
@@ -48,6 +49,7 @@ func (ps *persistentStorage) CreateTable(tableName string, columns []models.Colu
 	if err := encoder.Encode(models.Table{
 		Name:    tableName,
 		Columns: columns,
+		Rows:    [][]models.Cell{},
 	}); err != nil {
 		return fmt.Errorf("CreateTable(): failed to encode table: %w", err)
 	}
@@ -69,30 +71,45 @@ func (ps *persistentStorage) DropTable(tableName string) error {
 	return nil
 }
 
-func (ps *persistentStorage) Insert(tableName string, allValues []models.Cell) error {
+type table struct {
+	Name    string          `json:"name"`
+	Columns []models.Column `json:"columns"`
+	Rows    [][]interface{} `json:"rows"`
+}
+
+func (ps *persistentStorage) Insert(tableName string, values []interface{}) error {
 	filename := filepath.Join(ps.dir, tableName+".json")
 
 	if _, err := os.Stat(filename); err != nil {
 		return fmt.Errorf("Insert(): table does not exist: %w", err)
 	}
 
-	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	file, err := os.OpenFile(filename, os.O_RDWR, 0644)
 	if err != nil {
 		return fmt.Errorf("Insert(): failed to open table file: %w", err)
 	}
 	defer file.Close()
 
+	var tableData table
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&tableData); err != nil {
+		return fmt.Errorf("failed to decode table data: %w", err)
+	}
+
+	tableData.Rows = append(tableData.Rows, values)
+
+	file.Seek(0, 0)
+
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
-
-	if err := encoder.Encode(allValues); err != nil {
+	if err := encoder.Encode(tableData); err != nil {
 		return fmt.Errorf("Insert(): failed to encode new values: %w", err)
 	}
 
 	return nil
 }
 
-func (ps *persistentStorage) Select(tableName string) (*models.Table, error) {
+func (ps *persistentStorage) Select(tableName string) (*table, error) {
 	filename := filepath.Join(ps.dir, tableName+".json")
 
 	if _, err := os.Stat(filename); err != nil {
@@ -105,10 +122,33 @@ func (ps *persistentStorage) Select(tableName string) (*models.Table, error) {
 	}
 	defer file.Close()
 
-	var table models.Table
-	if err := json.NewDecoder(file).Decode(&table); err != nil {
-		return nil, fmt.Errorf("Select(): failed to decode table: %w", err)
+	var tableData table
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&tableData); err != nil {
+		return nil, fmt.Errorf("failed to decode table data: %w", err)
 	}
 
-	return &table, nil
+	return &tableData, nil
+}
+
+func (ps *persistentStorage) GetTableColumns(tableName string) ([]models.Column, error) {
+	filename := filepath.Join(ps.dir, tableName+".json")
+
+	if _, err := os.Stat(filename); err != nil {
+		return nil, fmt.Errorf("GetTableColumns(): table does not exist: %w", err)
+	}
+
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, fmt.Errorf("GetTableColumns(): failed to open table file: %w", err)
+	}
+	defer file.Close()
+
+	var tableData table
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&tableData); err != nil {
+		return nil, fmt.Errorf("GetTableColumns(): failed to decode table data: %w", err)
+	}
+
+	return tableData.Columns, nil
 }

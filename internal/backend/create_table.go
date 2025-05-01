@@ -30,7 +30,10 @@ func (mb *memoryBackend) createTable(statement *ast.CreateTableStatement) error 
 		})
 	}
 
-	mb.memoryStorage.CreateTable(statement.Name.Value, columns)
+	err := mb.persistentStorage.CreateTable(statement.Name.Value, columns)
+	if err != nil {
+		return err
+	}
 
-	return nil
+	return mb.memoryStorage.CreateTable(statement.Name.Value, columns)
 }

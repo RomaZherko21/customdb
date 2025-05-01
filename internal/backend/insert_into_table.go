@@ -25,6 +25,33 @@ func (mb *memoryBackend) insertIntoTable(statement *ast.InsertStatement) error {
 		row = append(row, mb.tokenToCell(value.Literal))
 	}
 
+	interfaceCells := make([]interface{}, len(row))
+	columns, err := mb.persistentStorage.GetTableColumns(statement.Table.Value)
+	if err != nil {
+		return err
+	}
+
+	for i, cell := range row {
+		if cell == nil {
+			return fmt.Errorf("failed to convert cell to interface: nil not allowed")
+		}
+
+		column := columns[i]
+
+		if column.Type == models.IntType {
+			interfaceCells[i] = cell.AsInt()
+		}
+
+		if column.Type == models.TextType {
+			interfaceCells[i] = cell.AsText()
+		}
+	}
+
+	err = mb.persistentStorage.Insert(statement.Table.Value, interfaceCells)
+	if err != nil {
+		return err
+	}
+
 	cells := make([]models.Cell, len(row))
 	for i, cell := range row {
 		cells[i] = cell

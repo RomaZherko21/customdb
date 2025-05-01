@@ -1,65 +1,52 @@
 package backend
 
 import (
+	"bytes"
 	"custom-database/internal/models"
 	"custom-database/internal/parser/ast"
-	"custom-database/internal/parser/lex"
+	"encoding/binary"
 	"fmt"
 )
 
 func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*models.Table, error) {
-	table, err := mb.memoryStorage.Select(statement.From.Value)
+	// table, err := mb.memoryStorage.Select(statement.From.Value)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	table, err := mb.persistentStorage.Select(statement.From.Value)
 	if err != nil {
 		return nil, err
 	}
 
 	results := [][]models.Cell{}
-	columns := []models.Column{}
 
-	for i, row := range table.Rows {
+	for _, row := range table.Rows {
 		result := []models.Cell{}
-		isFirstRow := i == 0
+		for i, cell := range row {
+			column := table.Columns[i]
+			var memoryCell MemoryCell
 
-		for _, exp := range statement.Item {
-			if exp.Kind != ast.LiteralKind {
-				// Unsupported, doesn't currently exist, ignore.
-				fmt.Println("Skipping non-literal expression.")
-				continue
+			if column.Type == models.IntType {
+				buf := new(bytes.Buffer)
+				err := binary.Write(buf, binary.BigEndian, int32(cell.(float64)))
+				if err != nil {
+					return nil, fmt.Errorf("failed to convert int: %w", err)
+				}
+				memoryCell = MemoryCell(buf.Bytes())
 			}
 
-			lit := exp.Literal
-			if lit.Kind == lex.IdentifierToken {
-				found := false
-				for i, tableCol := range table.Columns {
-					if tableCol.Name == lit.Value {
-						if isFirstRow {
-							columns = append(columns, models.Column{
-								Type: tableCol.Type,
-								Name: lit.Value,
-							})
-						}
-
-						result = append(result, row[i])
-						found = true
-						break
-					}
-				}
-
-				if !found {
-					return nil, fmt.Errorf("Column does not exist: %s", lit.Value)
-				}
-
-				continue
+			if column.Type == models.TextType {
+				memoryCell = MemoryCell(cell.(string))
 			}
 
-			return nil, fmt.Errorf("Column does not exist: %s", lit.Value)
+			result = append(result, memoryCell)
 		}
-
 		results = append(results, result)
 	}
 
 	return &models.Table{
-		Columns: columns,
+		Columns: table.Columns,
 		Rows:    results,
 	}, nil
 }
