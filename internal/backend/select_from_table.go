@@ -28,28 +28,31 @@ func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*model
 	//
 
 	//// FILTERING
-	selectedColumnNames := []string{}
-	for _, value := range statement.SelectedColumns {
-		selectedColumnNames = append(selectedColumnNames, value.Literal.Value)
-	}
+	if statement.SelectedColumns != nil && len(statement.SelectedColumns) != 0 {
+		selectedColumnNames := []string{}
+		for _, value := range statement.SelectedColumns {
+			selectedColumnNames = append(selectedColumnNames, value.Literal.Value)
+		}
 
-	for i, row := range table.Rows {
-		resultRow := []interface{}{}
-		for i, column := range table.Columns {
+		for i, row := range table.Rows {
+			resultRow := []interface{}{}
+			for i, column := range table.Columns {
+				if slices.Contains(selectedColumnNames, column.Name) {
+					resultRow = append(resultRow, row[i])
+				}
+			}
+
+			table.Rows[i] = resultRow
+		}
+		newColumns := []models.Column{}
+		for _, column := range table.Columns {
 			if slices.Contains(selectedColumnNames, column.Name) {
-				resultRow = append(resultRow, row[i])
+				newColumns = append(newColumns, column)
 			}
 		}
+		table.Columns = newColumns
+	}
 
-		table.Rows[i] = resultRow
-	}
-	newColumns := []models.Column{}
-	for _, column := range table.Columns {
-		if slices.Contains(selectedColumnNames, column.Name) {
-			newColumns = append(newColumns, column)
-		}
-	}
-	table.Columns = newColumns
 	////
 
 	rows := [][]models.Cell{}
@@ -57,7 +60,7 @@ func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*model
 	for _, row := range table.Rows {
 		newRow := []models.Cell{}
 		for i, cell := range row {
-			column := newColumns[i]
+			column := table.Columns[i]
 			var memoryCell MemoryCell
 
 			if column.Type == models.IntType {
@@ -79,7 +82,7 @@ func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*model
 	}
 
 	return &models.Table{
-		Columns: newColumns,
+		Columns: table.Columns,
 		Rows:    rows,
 	}, nil
 }

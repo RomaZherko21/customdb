@@ -15,12 +15,17 @@ func parseSelectStatement(tokens []*lex.Token, initialCursor uint) (*SelectState
 	}
 	cursor++
 
-	exps, newCursor, ok := parseExpressions(tokens, cursor, []lex.Token{tokenFromKeyword(lex.FromKeyword), tokenFromSymbol(lex.SemicolonSymbol)})
-	if !ok {
-		return nil, initialCursor, false
+	if expectToken(tokens, cursor, tokenFromSymbol(lex.AsteriskSymbol)) {
+		statement.SelectedColumns = []*Expression{}
+		cursor++
+	} else {
+		exps, newCursor, ok := parseExpressions(tokens, cursor, []lex.Token{tokenFromKeyword(lex.FromKeyword), tokenFromSymbol(lex.SemicolonSymbol)})
+		if !ok {
+			return nil, initialCursor, false
+		}
+		cursor = newCursor
+		statement.SelectedColumns = *exps
 	}
-	cursor = newCursor
-	statement.SelectedColumns = *exps
 
 	// Парсим FROM (опционально)
 	if !expectToken(tokens, cursor, tokenFromKeyword(lex.FromKeyword)) {

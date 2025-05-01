@@ -93,14 +93,12 @@ func TestCreateAndQueryTable(t *testing.T) {
 	// cleanup := setupTestServer(t)
 	// defer cleanup()
 
-	// Тест 1: Создание таблицы
 	t.Run("Create Table", func(t *testing.T) {
 		query := "CREATE TABLE test_table (id INT, name TEXT);"
 		response := executeQuery(t, query)
 		assert.Empty(t, response.Error)
 	})
 
-	// Тест 2: Вставка данных
 	t.Run("Insert Data", func(t *testing.T) {
 		queries := []string{
 			"INSERT INTO test_table VALUES (1, 'Rick');",
@@ -113,7 +111,6 @@ func TestCreateAndQueryTable(t *testing.T) {
 		}
 	})
 
-	// Тест 3: Выборка данных
 	t.Run("Select Data", func(t *testing.T) {
 		query := "SELECT id, name FROM test_table;"
 		response := executeQuery(t, query)
@@ -124,7 +121,16 @@ func TestCreateAndQueryTable(t *testing.T) {
 		assert.Equal(t, want, response.Result)
 	})
 
-	// Тест 4: Удаление таблицы
+	t.Run("Select Data with *", func(t *testing.T) {
+		query := "SELECT * FROM test_table;"
+		response := executeQuery(t, query)
+		assert.Empty(t, response.Error)
+
+		want := `{"name":"","columns":[{"name":"id","type":1},{"name":"name","type":0}],"rows":[[1,"Rick"],[2,"Morty"]]}`
+
+		assert.Equal(t, want, response.Result)
+	})
+
 	t.Run("Drop Table", func(t *testing.T) {
 		query := "DROP TABLE test_table;"
 		response := executeQuery(t, query)

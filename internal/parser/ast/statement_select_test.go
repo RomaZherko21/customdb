@@ -9,6 +9,24 @@ import (
 )
 
 func TestParseSelectStatement(t *testing.T) {
+
+	t.Run("valid SELECT statement with *", func(t *testing.T) {
+		tokens := []*lex.Token{
+			{Kind: lex.KeywordToken, Value: "select"},
+			{Kind: lex.SymbolToken, Value: "*"},
+			{Kind: lex.KeywordToken, Value: "from"},
+			{Kind: lex.IdentifierToken, Value: "users"},
+			{Kind: lex.SymbolToken, Value: ";"},
+		}
+
+		result, cursor, ok := parseSelectStatement(tokens, 0)
+
+		require.True(t, ok)
+		require.Equal(t, uint(4), cursor)
+		require.Len(t, result.SelectedColumns, 0)
+		require.Equal(t, "users", result.From.Value)
+	})
+
 	t.Run("valid SELECT statement with FROM", func(t *testing.T) {
 		tokens := []*lex.Token{
 			{Kind: lex.KeywordToken, Value: "select"},
