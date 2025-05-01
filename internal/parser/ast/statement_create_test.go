@@ -20,6 +20,7 @@ func TestParseCreateTableStatement(t *testing.T) {
 			{Kind: lex.IdentifierToken, Value: "name"},
 			{Kind: lex.KeywordToken, Value: "text"},
 			{Kind: lex.SymbolToken, Value: ")"},
+			{Kind: lex.SymbolToken, Value: ";"},
 		}
 		delimiter := lex.Token{Kind: lex.SymbolToken, Value: ")"}
 

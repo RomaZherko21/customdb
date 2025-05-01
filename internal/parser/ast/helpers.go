@@ -78,6 +78,20 @@ func tokenFromSymbol(s lex.Symbol) lex.Token {
 	}
 }
 
+func tokenFromMathOperator(o lex.MathOperator) lex.Token {
+	return lex.Token{
+		Kind:  lex.MathOperatorToken,
+		Value: string(o),
+	}
+}
+
+func tokenFromLogicalOperator(o lex.LogicalOperator) lex.Token {
+	return lex.Token{
+		Kind:  lex.LogicalOperatorToken,
+		Value: string(o),
+	}
+}
+
 func parseToken(tokens []*lex.Token, initialCursor uint, kind lex.TokenKind) (*lex.Token, uint, bool) {
 	cursor := initialCursor
 

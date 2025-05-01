@@ -55,7 +55,7 @@ type SelectStatement struct {
 }
 
 type WhereClause struct {
-	Left  *Expression
-	Right *Expression
-	Op    lex.Token
+	Left     *Expression
+	Right    *Expression
+	Operator lex.Token
 }

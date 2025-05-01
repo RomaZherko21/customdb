@@ -19,6 +19,7 @@ func TestParseInsertStatement(t *testing.T) {
 			{Kind: lex.SymbolToken, Value: ","},
 			{Kind: lex.StringToken, Value: "John"},
 			{Kind: lex.SymbolToken, Value: ")"},
+			{Kind: lex.SymbolToken, Value: ";"},
 		}
 		delimiter := lex.Token{Kind: lex.SymbolToken, Value: ")"}
 
