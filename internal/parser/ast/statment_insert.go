@@ -2,7 +2,7 @@ package ast
 
 import "custom-database/internal/parser/lex"
 
-func parseInsertStatement(tokens []*lex.Token, initialCursor uint, delimiter lex.Token) (*InsertStatement, uint, bool) {
+func parseInsertStatement(tokens []*lex.Token, initialCursor uint) (*InsertStatement, uint, bool) {
 	cursor := initialCursor
 
 	// Look for INSERT
@@ -53,6 +53,11 @@ func parseInsertStatement(tokens []*lex.Token, initialCursor uint, delimiter lex
 		return nil, initialCursor, false
 	}
 	cursor++
+
+	if !expectToken(tokens, cursor, tokenFromSymbol(lex.SemicolonSymbol)) {
+		helpMessage(tokens, cursor, "Expected semicolon")
+		return nil, initialCursor, false
+	}
 
 	return &InsertStatement{
 		Table:  *table,

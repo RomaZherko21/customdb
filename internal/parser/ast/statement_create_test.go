@@ -22,9 +22,8 @@ func TestParseCreateTableStatement(t *testing.T) {
 			{Kind: lex.SymbolToken, Value: ")"},
 			{Kind: lex.SymbolToken, Value: ";"},
 		}
-		delimiter := lex.Token{Kind: lex.SymbolToken, Value: ")"}
 
-		result, cursor, ok := parseCreateTableStatement(tokens, 0, delimiter)
+		result, cursor, ok := parseCreateTableStatement(tokens, 0)
 
 		require.True(t, ok)
 		require.Equal(t, uint(10), cursor)
@@ -41,9 +40,8 @@ func TestParseCreateTableStatement(t *testing.T) {
 			{Kind: lex.KeywordToken, Value: "create"},
 			{Kind: lex.IdentifierToken, Value: "users"},
 		}
-		delimiter := lex.Token{Kind: lex.SymbolToken, Value: ")"}
 
-		result, cursor, ok := parseCreateTableStatement(tokens, 0, delimiter)
+		result, cursor, ok := parseCreateTableStatement(tokens, 0)
 
 		require.False(t, ok)
 		require.Equal(t, uint(0), cursor)
@@ -55,9 +53,8 @@ func TestParseCreateTableStatement(t *testing.T) {
 			{Kind: lex.KeywordToken, Value: "create"},
 			{Kind: lex.KeywordToken, Value: "table"},
 		}
-		delimiter := lex.Token{Kind: lex.SymbolToken, Value: ")"}
 
-		result, cursor, ok := parseCreateTableStatement(tokens, 0, delimiter)
+		result, cursor, ok := parseCreateTableStatement(tokens, 0)
 
 		require.False(t, ok)
 		require.Equal(t, uint(0), cursor)
@@ -70,9 +67,8 @@ func TestParseCreateTableStatement(t *testing.T) {
 			{Kind: lex.KeywordToken, Value: "table"},
 			{Kind: lex.IdentifierToken, Value: "users"},
 		}
-		delimiter := lex.Token{Kind: lex.SymbolToken, Value: ")"}
 
-		result, cursor, ok := parseCreateTableStatement(tokens, 0, delimiter)
+		result, cursor, ok := parseCreateTableStatement(tokens, 0)
 
 		require.False(t, ok)
 		require.Equal(t, uint(0), cursor)

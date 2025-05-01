@@ -19,9 +19,8 @@ func TestParseSelectStatement(t *testing.T) {
 			{Kind: lex.IdentifierToken, Value: "users"},
 			{Kind: lex.SymbolToken, Value: ";"},
 		}
-		delimiter := lex.Token{Kind: lex.SymbolToken, Value: ";"}
 
-		result, cursor, ok := parseSelectStatement(tokens, 0, delimiter)
+		result, cursor, ok := parseSelectStatement(tokens, 0)
 
 		require.True(t, ok)
 		require.Equal(t, uint(6), cursor)
@@ -43,9 +42,7 @@ func TestParseSelectStatement(t *testing.T) {
 			{Kind: lex.NumericToken, Value: "18"},
 			{Kind: lex.SymbolToken, Value: ";"},
 		}
-		delimiter := lex.Token{Kind: lex.SymbolToken, Value: ";"}
-
-		result, cursor, ok := parseSelectStatement(tokens, 0, delimiter)
+		result, cursor, ok := parseSelectStatement(tokens, 0)
 
 		for _, where := range result.Where {
 			fmt.Println("HEHE", where.Left.Literal.Value, where.Operator.Value, where.Right.Literal.Value)
@@ -81,9 +78,8 @@ func TestParseSelectStatement(t *testing.T) {
 			{Kind: lex.StringToken, Value: "'John'"},
 			{Kind: lex.SymbolToken, Value: ";"},
 		}
-		delimiter := lex.Token{Kind: lex.SymbolToken, Value: ";"}
 
-		result, _, ok := parseSelectStatement(tokens, 0, delimiter)
+		result, _, ok := parseSelectStatement(tokens, 0)
 
 		require.True(t, ok)
 		require.Equal(t, "users", result.From.Value)
@@ -114,9 +110,8 @@ func TestParseSelectStatement(t *testing.T) {
 			{Kind: lex.SymbolToken, Value: ","},
 			{Kind: lex.IdentifierToken, Value: "name"},
 		}
-		delimiter := lex.Token{Kind: lex.SymbolToken, Value: ";"}
 
-		result, cursor, ok := parseSelectStatement(tokens, 0, delimiter)
+		result, cursor, ok := parseSelectStatement(tokens, 0)
 
 		require.False(t, ok)
 		require.Equal(t, uint(0), cursor)
@@ -127,9 +122,8 @@ func TestParseSelectStatement(t *testing.T) {
 		tokens := []*lex.Token{
 			{Kind: lex.KeywordToken, Value: "select"},
 		}
-		delimiter := lex.Token{Kind: lex.SymbolToken, Value: ";"}
 
-		result, cursor, ok := parseSelectStatement(tokens, 0, delimiter)
+		result, cursor, ok := parseSelectStatement(tokens, 0)
 
 		require.False(t, ok)
 		require.Equal(t, uint(0), cursor)
@@ -142,9 +136,8 @@ func TestParseSelectStatement(t *testing.T) {
 			{Kind: lex.IdentifierToken, Value: "id"},
 			{Kind: lex.KeywordToken, Value: "from"},
 		}
-		delimiter := lex.Token{Kind: lex.SymbolToken, Value: ";"}
 
-		result, cursor, ok := parseSelectStatement(tokens, 0, delimiter)
+		result, cursor, ok := parseSelectStatement(tokens, 0)
 
 		require.False(t, ok)
 		require.Equal(t, uint(0), cursor)
@@ -160,10 +153,10 @@ func TestParseSelectStatement(t *testing.T) {
 			{Kind: lex.KeywordToken, Value: "where"},
 			{Kind: lex.IdentifierToken, Value: "age"},
 			{Kind: lex.MathOperatorToken, Value: "="},
+			{Kind: lex.NumericToken, Value: "10"},
 		}
-		delimiter := lex.Token{Kind: lex.SymbolToken, Value: ";"}
 
-		result, cursor, ok := parseSelectStatement(tokens, 0, delimiter)
+		result, cursor, ok := parseSelectStatement(tokens, 0)
 
 		require.False(t, ok)
 		require.Equal(t, uint(0), cursor)

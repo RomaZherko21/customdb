@@ -7,7 +7,7 @@ type columnDefinition struct {
 	Datatype lex.Token
 }
 
-func parseCreateTableStatement(tokens []*lex.Token, initialCursor uint, delimiter lex.Token) (*CreateTableStatement, uint, bool) {
+func parseCreateTableStatement(tokens []*lex.Token, initialCursor uint) (*CreateTableStatement, uint, bool) {
 	cursor := initialCursor
 
 	if !expectToken(tokens, cursor, tokenFromKeyword(lex.CreateKeyword)) {
@@ -44,6 +44,11 @@ func parseCreateTableStatement(tokens []*lex.Token, initialCursor uint, delimite
 		return nil, initialCursor, false
 	}
 	cursor++
+
+	if !expectToken(tokens, cursor, tokenFromSymbol(lex.SemicolonSymbol)) {
+		helpMessage(tokens, cursor, "Expected semicolon")
+		return nil, initialCursor, false
+	}
 
 	return &CreateTableStatement{
 		Name: *name,

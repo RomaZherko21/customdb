@@ -2,7 +2,7 @@ package ast
 
 import "custom-database/internal/parser/lex"
 
-func parseDropTableStatement(tokens []*lex.Token, initialCursor uint, delimiter lex.Token) (*DropTableStatement, uint, bool) {
+func parseDropTableStatement(tokens []*lex.Token, initialCursor uint) (*DropTableStatement, uint, bool) {
 	cursor := initialCursor
 
 	// Look for DROP
@@ -25,6 +25,11 @@ func parseDropTableStatement(tokens []*lex.Token, initialCursor uint, delimiter 
 		return nil, initialCursor, false
 	}
 	cursor = newCursor
+
+	if !expectToken(tokens, cursor, tokenFromSymbol(lex.SemicolonSymbol)) {
+		helpMessage(tokens, cursor, "Expected semicolon")
+		return nil, initialCursor, false
+	}
 
 	return &DropTableStatement{
 		Table: *table,

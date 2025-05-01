@@ -21,9 +21,8 @@ func TestParseInsertStatement(t *testing.T) {
 			{Kind: lex.SymbolToken, Value: ")"},
 			{Kind: lex.SymbolToken, Value: ";"},
 		}
-		delimiter := lex.Token{Kind: lex.SymbolToken, Value: ")"}
 
-		result, cursor, ok := parseInsertStatement(tokens, 0, delimiter)
+		result, cursor, ok := parseInsertStatement(tokens, 0)
 
 		require.True(t, ok)
 		require.Equal(t, uint(9), cursor)
@@ -38,9 +37,8 @@ func TestParseInsertStatement(t *testing.T) {
 			{Kind: lex.KeywordToken, Value: "insert"},
 			{Kind: lex.IdentifierToken, Value: "users"},
 		}
-		delimiter := lex.Token{Kind: lex.SymbolToken, Value: ")"}
 
-		result, cursor, ok := parseInsertStatement(tokens, 0, delimiter)
+		result, cursor, ok := parseInsertStatement(tokens, 0)
 
 		require.False(t, ok)
 		require.Equal(t, uint(0), cursor)
@@ -52,9 +50,8 @@ func TestParseInsertStatement(t *testing.T) {
 			{Kind: lex.KeywordToken, Value: "insert"},
 			{Kind: lex.KeywordToken, Value: "into"},
 		}
-		delimiter := lex.Token{Kind: lex.SymbolToken, Value: ")"}
 
-		result, cursor, ok := parseInsertStatement(tokens, 0, delimiter)
+		result, cursor, ok := parseInsertStatement(tokens, 0)
 
 		require.False(t, ok)
 		require.Equal(t, uint(0), cursor)
@@ -67,9 +64,8 @@ func TestParseInsertStatement(t *testing.T) {
 			{Kind: lex.KeywordToken, Value: "into"},
 			{Kind: lex.IdentifierToken, Value: "users"},
 		}
-		delimiter := lex.Token{Kind: lex.SymbolToken, Value: ")"}
 
-		result, cursor, ok := parseInsertStatement(tokens, 0, delimiter)
+		result, cursor, ok := parseInsertStatement(tokens, 0)
 
 		require.False(t, ok)
 		require.Equal(t, uint(0), cursor)
@@ -83,9 +79,8 @@ func TestParseInsertStatement(t *testing.T) {
 			{Kind: lex.IdentifierToken, Value: "users"},
 			{Kind: lex.KeywordToken, Value: "values"},
 		}
-		delimiter := lex.Token{Kind: lex.SymbolToken, Value: ")"}
 
-		result, cursor, ok := parseInsertStatement(tokens, 0, delimiter)
+		result, cursor, ok := parseInsertStatement(tokens, 0)
 
 		require.False(t, ok)
 		require.Equal(t, uint(0), cursor)
@@ -103,9 +98,8 @@ func TestParseInsertStatement(t *testing.T) {
 			{Kind: lex.SymbolToken, Value: ","},
 			{Kind: lex.StringToken, Value: "John"},
 		}
-		delimiter := lex.Token{Kind: lex.SymbolToken, Value: ")"}
 
-		result, cursor, ok := parseInsertStatement(tokens, 0, delimiter)
+		result, cursor, ok := parseInsertStatement(tokens, 0)
 
 		require.False(t, ok)
 		require.Equal(t, uint(0), cursor)

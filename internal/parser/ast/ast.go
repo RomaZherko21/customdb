@@ -26,7 +26,7 @@ func (s *ast) Parse(query string) (*Ast, error) {
 	result := Ast{}
 	cursor := uint(0)
 	for cursor < uint(len(tokens)) {
-		statement, newCursor, ok := parseStatement(tokens, cursor, tokenFromSymbol(lex.SemicolonSymbol))
+		statement, newCursor, ok := parseStatement(tokens, cursor)
 		if !ok {
 			helpMessage(tokens, cursor, "Expected statement")
 			return nil, errors.New("Failed to parse, expected statement")
@@ -50,12 +50,11 @@ func (s *ast) Parse(query string) (*Ast, error) {
 	return &result, nil
 }
 
-func parseStatement(tokens []*lex.Token, initialCursor uint, delimiter lex.Token) (*Statement, uint, bool) {
+func parseStatement(tokens []*lex.Token, initialCursor uint) (*Statement, uint, bool) {
 	cursor := initialCursor
-	semicolonToken := tokenFromSymbol(lex.SemicolonSymbol)
 
 	// Look for a SELECT statement
-	slct, newCursor, ok := parseSelectStatement(tokens, cursor, semicolonToken)
+	slct, newCursor, ok := parseSelectStatement(tokens, cursor)
 	if ok {
 		return &Statement{
 			Kind:            SelectKind,
@@ -64,7 +63,7 @@ func parseStatement(tokens []*lex.Token, initialCursor uint, delimiter lex.Token
 	}
 
 	// Look for a INSERT statement
-	inst, newCursor, ok := parseInsertStatement(tokens, cursor, semicolonToken)
+	inst, newCursor, ok := parseInsertStatement(tokens, cursor)
 	if ok {
 		return &Statement{
 			Kind:            InsertKind,
@@ -73,7 +72,7 @@ func parseStatement(tokens []*lex.Token, initialCursor uint, delimiter lex.Token
 	}
 
 	// Look for a CREATE statement
-	crtTbl, newCursor, ok := parseCreateTableStatement(tokens, cursor, semicolonToken)
+	crtTbl, newCursor, ok := parseCreateTableStatement(tokens, cursor)
 	if ok {
 		return &Statement{
 			Kind:                 CreateTableKind,
@@ -82,7 +81,7 @@ func parseStatement(tokens []*lex.Token, initialCursor uint, delimiter lex.Token
 	}
 
 	// Look for a DROP statement
-	dropTbl, newCursor, ok := parseDropTableStatement(tokens, cursor, semicolonToken)
+	dropTbl, newCursor, ok := parseDropTableStatement(tokens, cursor)
 	if ok {
 		return &Statement{
 			Kind:               DropTableKind,
