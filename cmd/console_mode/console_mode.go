@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/olekukonko/tablewriter"
 )
 
 func RunConsoleMode(parser parser.ParserService, mb backend.MemoryBackendService) {
@@ -40,33 +42,45 @@ func RunConsoleMode(parser parser.ParserService, mb backend.MemoryBackendService
 	}
 }
 
-func printTable(table *models.Table) {
-	for _, col := range table.Columns {
-		fmt.Printf("| %s ", col.Name)
+func printTable(results *models.Table) error {
+	if len(results.Rows) == 0 {
+		fmt.Println("(no results)")
+		return nil
 	}
-	fmt.Println("|")
 
-	for i := 0; i < 20; i++ {
-		fmt.Printf("=")
+	table := tablewriter.NewWriter(os.Stdout)
+	header := []string{}
+	for _, col := range results.Columns {
+		header = append(header, fmt.Sprintf("%s", col.Name))
 	}
-	fmt.Println()
+	table.SetHeader(header)
+	table.SetAutoFormatHeaders(false)
 
-	for _, row := range table.Rows {
-		fmt.Printf("|")
-
-		for i, cell := range row {
-			typ := table.Columns[i].Type
-			s := ""
+	rows := [][]string{}
+	for _, result := range results.Rows {
+		row := []string{}
+		for i, cell := range result {
+			typ := results.Columns[i].Type
+			r := ""
 			switch typ {
 			case models.IntType:
-				s = fmt.Sprintf("%d", cell.AsInt())
+				i := cell.AsInt()
+				r = fmt.Sprintf("%d", i)
 			case models.TextType:
-				s = cell.AsText()
+				r = cell.AsText()
 			}
 
-			fmt.Printf(" %s | ", s)
+			row = append(row, r)
 		}
 
-		fmt.Println()
+		rows = append(rows, row)
 	}
+
+	table.SetBorder(true)
+	table.AppendBulk(rows)
+	table.Render()
+
+	fmt.Printf("(%d rows)\n", len(rows))
+
+	return nil
 }
