@@ -2,8 +2,10 @@ package main
 
 import (
 	"custom-database/cmd/console_mode"
+	"custom-database/cmd/http_mode"
 	"custom-database/config"
 	"custom-database/internal/backend"
+	"custom-database/internal/http/handlers"
 	"custom-database/internal/parser"
 	"flag"
 	"log"
@@ -21,7 +23,7 @@ func main() {
 	}
 
 	mode := flag.String("mode", "console", "Режим работы: console или http")
-	// port := flag.String("port", cfg.Port, "Порт для HTTP сервера")
+	port := flag.String("port", cfg.Port, "Порт для HTTP сервера")
 	flag.Parse()
 
 	parser := parser.NewParser()
@@ -30,13 +32,13 @@ func main() {
 		log.Fatal("Error creating memory backend:", err)
 	}
 
-	// handlers := handlers.NewHttpHandlers(lexer)
+	handlers := handlers.NewHttpHandlers(parser, mb)
 
 	switch *mode {
 	case "console":
 		console_mode.RunConsoleMode(parser, mb)
 	case "http":
-		// http_mode.RunHttpServer(handlers, *port)
+		http_mode.RunHttpServer(handlers, *port)
 	default:
 		log.Fatal("Неизвестный режим работы. Используйте 'console' или 'http'")
 	}

@@ -1,14 +1,24 @@
 package handlers
 
-// "github.com/gin-gonic/gin"
+import (
+	"custom-database/internal/backend"
+	"custom-database/internal/parser"
+
+	"github.com/gin-gonic/gin"
+)
 
 type HttpHandlers interface {
-	// HandleSqlQuery(c *gin.Context)
+	HandleSqlQuery(c *gin.Context)
 }
 
 type handlers struct {
+	parser parser.ParserService
+	mb     backend.MemoryBackendService
 }
 
-func NewHttpHandlers() HttpHandlers {
-	return &handlers{}
+func NewHttpHandlers(parser parser.ParserService, mb backend.MemoryBackendService) HttpHandlers {
+	return &handlers{
+		parser: parser,
+		mb:     mb,
+	}
 }

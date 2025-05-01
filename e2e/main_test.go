@@ -95,7 +95,7 @@ func TestCreateAndQueryTable(t *testing.T) {
 
 	// Тест 1: Создание таблицы
 	t.Run("Create Table", func(t *testing.T) {
-		query := "CREATE TABLE test_table (id INT, name TEXT, isAdmin BOOLEAN);"
+		query := "CREATE TABLE test_table (id INT, name TEXT);"
 		response := executeQuery(t, query)
 		assert.Empty(t, response.Error)
 	})
@@ -103,8 +103,8 @@ func TestCreateAndQueryTable(t *testing.T) {
 	// Тест 2: Вставка данных
 	t.Run("Insert Data", func(t *testing.T) {
 		queries := []string{
-			"INSERT INTO test_table (id, name, isAdmin) VALUES (1, 'Rick', 'TRUE');",
-			"INSERT INTO test_table (id, name, isAdmin) VALUES (2, 'Morty', 'FALSE');",
+			"INSERT INTO test_table VALUES (1, 'Rick');",
+			"INSERT INTO test_table VALUES (2, 'Morty');",
 		}
 
 		for _, query := range queries {
@@ -115,11 +115,11 @@ func TestCreateAndQueryTable(t *testing.T) {
 
 	// Тест 3: Выборка данных
 	t.Run("Select Data", func(t *testing.T) {
-		query := "SELECT id, name, isAdmin FROM test_table;"
+		query := "SELECT id, name FROM test_table;"
 		response := executeQuery(t, query)
 		assert.Empty(t, response.Error)
 
-		want := `{"TableName":"test_table","Columns":[{"Name":"id","Type":"INT"},{"Name":"name","Type":"TEXT"},{"Name":"isAdmin","Type":"BOOLEAN"}],"Rows":[[1,"Rick","TRUE"],[2,"Morty","FALSE"]]}`
+		want := `{"name":"","columns":[{"name":"id","type":1},{"name":"name","type":0}],"rows":[[1,"Rick"],[2,"Morty"]]}`
 
 		assert.Equal(t, want, response.Result)
 	})

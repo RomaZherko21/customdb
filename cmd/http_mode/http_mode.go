@@ -18,7 +18,7 @@ func RunHttpServer(handlers handlers.HttpHandlers, port string) {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// router.POST("/query", handlers.HandleSqlQuery)
+	router.POST("/query", handlers.HandleSqlQuery)
 
 	log.Printf("HTTP сервер запущен на порту %s", port)
 	if err := router.Run(":" + port); err != nil {
