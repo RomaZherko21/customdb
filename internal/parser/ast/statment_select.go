@@ -54,7 +54,7 @@ func parseWhereClause(tokens []*lex.Token, initialCursor uint, delimiter lex.Tok
 	cursor := initialCursor
 
 	if !expectToken(tokens, cursor, tokenFromKeyword(lex.WhereKeyword)) {
-		return nil, initialCursor, false
+		return nil, initialCursor, true
 	}
 	cursor++
 
