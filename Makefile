@@ -4,6 +4,7 @@ run:
 run-http:
 	go run ./cmd/main.go -mode http -port 8080
 
+
 test:
 	go test ./internal/... -v
 

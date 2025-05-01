@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"custom-database/internal/models"
 	"encoding/json"
 
 	"github.com/gin-gonic/gin"
@@ -26,6 +27,7 @@ type SqlQueryResponse struct {
 // @Success 200 {object} SqlQueryResponse
 // @Failure 400 {object} SqlQueryResponse
 // @Router /query [post]
+
 func (h *handlers) HandleSqlQuery(c *gin.Context) {
 	var request SqlQueryRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -38,7 +40,16 @@ func (h *handlers) HandleSqlQuery(c *gin.Context) {
 
 	query := request.Query
 
-	result, err := h.lexer.ParseQuery(query)
+	ast, err := h.parser.Parse(query)
+	if err != nil {
+		c.JSON(400, SqlQueryResponse{
+			Success: false,
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	result, err := h.mb.ExecuteStatement(ast)
 	if err != nil {
 		c.JSON(400, SqlQueryResponse{
 			Success: false,
@@ -56,7 +67,7 @@ func (h *handlers) HandleSqlQuery(c *gin.Context) {
 	}
 
 	// Конвертируем результат в JSON строку
-	jsonResult, err := json.Marshal(result)
+	jsonResult, err := convertToJson(result)
 	if err != nil {
 		c.JSON(400, SqlQueryResponse{
 			Success: false,
@@ -69,4 +80,43 @@ func (h *handlers) HandleSqlQuery(c *gin.Context) {
 		Success: true,
 		Result:  string(jsonResult),
 	})
+}
+
+type jsonTable struct {
+	Name    string          `json:"name"`
+	Columns []models.Column `json:"columns"`
+	Rows    [][]interface{} `json:"rows"`
+}
+
+func convertToJson(table *models.Table) (string, error) {
+	result := jsonTable{
+		Name:    table.Name,
+		Columns: table.Columns,
+		Rows:    [][]interface{}{},
+	}
+
+	for _, row := range table.Rows {
+		jsonRow := []interface{}{}
+
+		for i, cell := range row {
+			typ := table.Columns[i].Type
+			var s interface{}
+			switch typ {
+			case models.IntType:
+				s = cell.AsInt()
+			case models.TextType:
+				s = cell.AsText()
+			}
+
+			jsonRow = append(jsonRow, s)
+		}
+
+		result.Rows = append(result.Rows, jsonRow)
+	}
+
+	jsonResult, err := json.Marshal(result)
+	if err != nil {
+		return "", err
+	}
+	return string(jsonResult), nil
 }

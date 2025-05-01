@@ -4,10 +4,9 @@ import (
 	"custom-database/cmd/console_mode"
 	"custom-database/cmd/http_mode"
 	"custom-database/config"
-	"custom-database/internal/executor"
+	"custom-database/internal/backend"
 	"custom-database/internal/http/handlers"
-	"custom-database/internal/lexer"
-	"custom-database/internal/storage"
+	"custom-database/internal/parser"
 	"flag"
 	"log"
 )
@@ -27,15 +26,17 @@ func main() {
 	port := flag.String("port", cfg.Port, "Порт для HTTP сервера")
 	flag.Parse()
 
-	storage := storage.NewStorage(cfg)
-	executor := executor.NewExecutor(storage)
-	lexer := lexer.NewLexer(executor)
+	parser := parser.NewParser()
+	mb, err := backend.NewMemoryBackend(cfg)
+	if err != nil {
+		log.Fatal("Error creating memory backend:", err)
+	}
 
-	handlers := handlers.NewHttpHandlers(lexer)
+	handlers := handlers.NewHttpHandlers(parser, mb)
 
 	switch *mode {
 	case "console":
-		console_mode.RunConsoleMode(lexer)
+		console_mode.RunConsoleMode(parser, mb)
 	case "http":
 		http_mode.RunHttpServer(handlers, *port)
 	default:

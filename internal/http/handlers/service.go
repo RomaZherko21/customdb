@@ -1,7 +1,8 @@
 package handlers
 
 import (
-	"custom-database/internal/lexer"
+	"custom-database/internal/backend"
+	"custom-database/internal/parser"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,11 +12,13 @@ type HttpHandlers interface {
 }
 
 type handlers struct {
-	lexer lexer.Lexer
+	parser parser.ParserService
+	mb     backend.MemoryBackendService
 }
 
-func NewHttpHandlers(lexer lexer.Lexer) HttpHandlers {
+func NewHttpHandlers(parser parser.ParserService, mb backend.MemoryBackendService) HttpHandlers {
 	return &handlers{
-		lexer: lexer,
+		parser: parser,
+		mb:     mb,
 	}
 }
