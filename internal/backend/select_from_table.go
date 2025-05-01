@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"custom-database/internal/models"
 	"custom-database/internal/parser/ast"
+	"custom-database/internal/parser/lex"
 	"encoding/binary"
 	"fmt"
 	"slices"
@@ -19,6 +20,12 @@ func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*model
 	if err != nil {
 		return nil, err
 	}
+
+	// WHERE
+	if statement.Where != nil && len(statement.Where) > 0 {
+		table.Rows = mb.filterRows(table.Columns, table.Rows, statement.Where)
+	}
+	//
 
 	//// FILTERING
 	selectedColumnNames := []string{}
@@ -75,4 +82,90 @@ func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*model
 		Columns: newColumns,
 		Rows:    rows,
 	}, nil
+}
+
+func (mb *memoryBackend) filterRows(columns []models.Column, rows [][]interface{}, whereClause []*ast.WhereClause) [][]interface{} {
+	filteredRows := [][]interface{}{}
+	for _, row := range rows {
+		if mb.filterRow(columns, row, whereClause) {
+			filteredRows = append(filteredRows, row)
+		}
+	}
+
+	return filteredRows
+}
+
+func (mb *memoryBackend) filterRow(columns []models.Column, row []interface{}, whereClause []*ast.WhereClause) bool {
+	if len(whereClause) == 0 {
+		return true
+	}
+
+	// Вычисляем все условия
+	conditions := make([]bool, 0)
+	logicalOps := make([]lex.Token, 0)
+
+	for _, clause := range whereClause {
+		if clause.Operator.Kind == lex.LogicalOperatorToken {
+			logicalOps = append(logicalOps, clause.Operator)
+			continue
+		}
+
+		leftVal, err := mb.getValueFromExpression(columns, row, clause.Left)
+		if err != nil {
+			return false
+		}
+
+		rightVal, err := mb.getValueFromExpression(columns, row, clause.Right)
+		if err != nil {
+			return false
+		}
+
+		condition := mb.evaluateCondition(leftVal, rightVal, clause.Operator.Value)
+		conditions = append(conditions, condition)
+	}
+
+	// Применяем логические операторы с учетом приоритета
+	result := conditions[0]
+	for i, op := range logicalOps {
+		if i >= len(conditions)-1 {
+			break
+		}
+
+		switch op.Value {
+		case string(lex.AndOperator):
+			result = result && conditions[i+1]
+		case string(lex.OrOperator):
+			result = result || conditions[i+1]
+		}
+	}
+
+	return result
+}
+
+func (mb *memoryBackend) getValueFromExpression(columns []models.Column, row []interface{}, expr *ast.Expression) (interface{}, error) {
+	if expr.Literal.Kind == lex.IdentifierToken {
+		// Ищем индекс колонки
+		for i, column := range columns {
+			if column.Name == expr.Literal.Value {
+				return row[i], nil
+			}
+		}
+		return nil, fmt.Errorf("column not found: %s", expr.Literal.Value)
+	}
+	return expr.Literal.Value, nil
+}
+
+func (mb *memoryBackend) evaluateCondition(left, right interface{}, operator string) bool {
+	switch operator {
+	case string(lex.EqualOperator):
+		return fmt.Sprintf("%v", left) == fmt.Sprintf("%v", right)
+	case string(lex.NotEqualOperator):
+		return fmt.Sprintf("%v", left) != fmt.Sprintf("%v", right)
+	case string(lex.GreaterThanOperator):
+		return fmt.Sprintf("%v", left) > fmt.Sprintf("%v", right)
+	case string(lex.LessThanOperator):
+		return fmt.Sprintf("%v", left) < fmt.Sprintf("%v", right)
+	default:
+		return false
+	}
 }

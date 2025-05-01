@@ -8,6 +8,8 @@ SELECT id, name FROM users;
 SELECT name FROM users;
 SELECT id FROM users;
 
+SELECT id, name FROM users WHERE id > 1 AND name = 'Moris';
+
 DROP TABLE users;
 
 
