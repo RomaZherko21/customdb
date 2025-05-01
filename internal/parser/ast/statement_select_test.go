@@ -23,9 +23,9 @@ func TestParseSelectStatement(t *testing.T) {
 
 		require.True(t, ok)
 		require.Equal(t, uint(6), cursor)
-		require.Len(t, result.Item, 2)
-		require.Equal(t, "id", result.Item[0].Literal.Value)
-		require.Equal(t, "name", result.Item[1].Literal.Value)
+		require.Len(t, result.SelectedColumns, 2)
+		require.Equal(t, "id", result.SelectedColumns[0].Literal.Value)
+		require.Equal(t, "name", result.SelectedColumns[1].Literal.Value)
 		require.Equal(t, "users", result.From.Value)
 	})
 

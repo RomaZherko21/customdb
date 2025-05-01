@@ -49,9 +49,9 @@ func TestParse(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, result.Statements, 1)
 		require.Equal(t, ast.SelectKind, result.Statements[0].Kind)
-		require.Len(t, result.Statements[0].SelectStatement.Item, 2)
-		require.Equal(t, "id", result.Statements[0].SelectStatement.Item[0].Literal.Value)
-		require.Equal(t, "name", result.Statements[0].SelectStatement.Item[1].Literal.Value)
+		require.Len(t, result.Statements[0].SelectStatement.SelectedColumns, 2)
+		require.Equal(t, "id", result.Statements[0].SelectStatement.SelectedColumns[0].Literal.Value)
+		require.Equal(t, "name", result.Statements[0].SelectStatement.SelectedColumns[1].Literal.Value)
 		require.Equal(t, "users", result.Statements[0].SelectStatement.From.Value)
 	})
 

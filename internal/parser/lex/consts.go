@@ -3,17 +3,21 @@ package lex
 type Keyword string
 
 const (
-	SelectKeyword Keyword = "select"
-	FromKeyword   Keyword = "from"
-	AsKeyword     Keyword = "as"
-	TableKeyword  Keyword = "table"
+	// Statements
 	CreateKeyword Keyword = "create"
+	DropKeyword   Keyword = "drop"
+	SelectKeyword Keyword = "select"
 	InsertKeyword Keyword = "insert"
+	// Keywords
+	FromKeyword   Keyword = "from"
+	TableKeyword  Keyword = "table"
+	AsKeyword     Keyword = "as"
 	IntoKeyword   Keyword = "into"
 	ValuesKeyword Keyword = "values"
-	IntKeyword    Keyword = "int"
-	TextKeyword   Keyword = "text"
-	DropKeyword   Keyword = "drop"
+	WhereKeyword  Keyword = "where"
+	// Datatypes
+	IntKeyword  Keyword = "int"
+	TextKeyword Keyword = "text"
 )
 
 var keywords = []Keyword{
@@ -27,6 +31,7 @@ var keywords = []Keyword{
 	IntKeyword,
 	TextKeyword,
 	DropKeyword,
+	WhereKeyword,
 }
 
 type Symbol string
@@ -45,4 +50,32 @@ var symbols = []Symbol{
 	RightparenSymbol,
 	SemicolonSymbol,
 	AsteriskSymbol,
+}
+
+type MathOperator string
+
+const (
+	EqualOperator       MathOperator = "="
+	NotEqualOperator    MathOperator = "!="
+	GreaterThanOperator MathOperator = ">"
+	LessThanOperator    MathOperator = "<"
+)
+
+var mathOperators = []MathOperator{
+	EqualOperator,
+	NotEqualOperator,
+	GreaterThanOperator,
+	LessThanOperator,
+}
+
+type LogicalOperator string
+
+const (
+	AndOperator LogicalOperator = "and"
+	OrOperator  LogicalOperator = "or"
+)
+
+var logicalOperators = []LogicalOperator{
+	AndOperator,
+	OrOperator,
 }

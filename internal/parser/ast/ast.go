@@ -52,9 +52,9 @@ func (s *ast) Parse(query string) (*Ast, error) {
 
 func parseStatement(tokens []*lex.Token, initialCursor uint, delimiter lex.Token) (*Statement, uint, bool) {
 	cursor := initialCursor
+	semicolonToken := tokenFromSymbol(lex.SemicolonSymbol)
 
 	// Look for a SELECT statement
-	semicolonToken := tokenFromSymbol(lex.SemicolonSymbol)
 	slct, newCursor, ok := parseSelectStatement(tokens, cursor, semicolonToken)
 	if ok {
 		return &Statement{

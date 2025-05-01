@@ -91,6 +91,78 @@ func TestLex(t *testing.T) {
 		}
 	})
 
+	t.Run("SELECT command with WHERE clause", func(t *testing.T) {
+		input := "SELECT id, name FROM users WHERE id = 1 AND name = 'John' OR name = 'Jane';"
+		want := []*Token{
+			{Kind: KeywordToken, Value: "select"},
+			{Kind: IdentifierToken, Value: "id"},
+			{Kind: SymbolToken, Value: ","},
+			{Kind: IdentifierToken, Value: "name"},
+			{Kind: KeywordToken, Value: "from"},
+			{Kind: IdentifierToken, Value: "users"},
+			{Kind: KeywordToken, Value: "where"},
+			{Kind: IdentifierToken, Value: "id"},
+			{Kind: MathOperatorToken, Value: "="},
+			{Kind: NumericToken, Value: "1"},
+			{Kind: LogicalOperatorToken, Value: "and"},
+			{Kind: IdentifierToken, Value: "name"},
+			{Kind: MathOperatorToken, Value: "="},
+			{Kind: StringToken, Value: "John"},
+			{Kind: LogicalOperatorToken, Value: "or"},
+			{Kind: IdentifierToken, Value: "name"},
+			{Kind: MathOperatorToken, Value: "="},
+			{Kind: StringToken, Value: "Jane"},
+			{Kind: SymbolToken, Value: ";"},
+		}
+
+		got, err := NewLexer().Lex(input)
+
+		require.NoError(t, err)
+
+		for i, token := range want {
+			if token.Kind != got[i].Kind || token.Value != got[i].Value {
+				t.Errorf("\nОшибка в токене %d:\nОжидалось: {Kind: %v, Value: %q}\nПолучено:  {Kind: %v, Value: %q}",
+					i, token.Kind, token.Value, got[i].Kind, got[i].Value)
+			}
+		}
+	})
+
+	t.Run("SELECT command with WHERE < > and !=", func(t *testing.T) {
+		input := "SELECT id, name FROM users WHERE id > 5 AND id < 10 AND id != 7;"
+		want := []*Token{
+			{Kind: KeywordToken, Value: "select"},
+			{Kind: IdentifierToken, Value: "id"},
+			{Kind: SymbolToken, Value: ","},
+			{Kind: IdentifierToken, Value: "name"},
+			{Kind: KeywordToken, Value: "from"},
+			{Kind: IdentifierToken, Value: "users"},
+			{Kind: KeywordToken, Value: "where"},
+			{Kind: IdentifierToken, Value: "id"},
+			{Kind: MathOperatorToken, Value: ">"},
+			{Kind: NumericToken, Value: "5"},
+			{Kind: LogicalOperatorToken, Value: "and"},
+			{Kind: IdentifierToken, Value: "id"},
+			{Kind: MathOperatorToken, Value: "<"},
+			{Kind: NumericToken, Value: "10"},
+			{Kind: LogicalOperatorToken, Value: "and"},
+			{Kind: IdentifierToken, Value: "id"},
+			{Kind: MathOperatorToken, Value: "!="},
+			{Kind: NumericToken, Value: "7"},
+			{Kind: SymbolToken, Value: ";"},
+		}
+
+		got, err := NewLexer().Lex(input)
+
+		require.NoError(t, err)
+
+		for i, token := range want {
+			if token.Kind != got[i].Kind || token.Value != got[i].Value {
+				t.Errorf("\nОшибка в токене %d:\nОжидалось: {Kind: %v, Value: %q}\nПолучено:  {Kind: %v, Value: %q}",
+					i, token.Kind, token.Value, got[i].Kind, got[i].Value)
+			}
+		}
+	})
+
 	t.Run("DROP TABLE command", func(t *testing.T) {
 		input := "DROP TABLE users;"
 		want := []*Token{
@@ -113,7 +185,7 @@ func TestLex(t *testing.T) {
 	})
 
 	t.Run("invalid SQL", func(t *testing.T) {
-		input := "SELECT ===;"
+		input := "SELECT #;"
 
 		_, err := NewLexer().Lex(input)
 

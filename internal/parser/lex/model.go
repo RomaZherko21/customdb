@@ -8,6 +8,8 @@ const (
 	IdentifierToken
 	StringToken
 	NumericToken
+	MathOperatorToken
+	LogicalOperatorToken
 )
 
 type Location struct {
