@@ -82,6 +82,7 @@ func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*model
 	}
 
 	return &models.Table{
+		Name:    table.Name,
 		Columns: table.Columns,
 		Rows:    rows,
 	}, nil

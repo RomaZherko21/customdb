@@ -1,41 +1,82 @@
 package console_mode
 
 import (
-	"bufio"
 	"custom-database/internal/backend"
 	"custom-database/internal/models"
 	"custom-database/internal/parser"
 	"fmt"
+	"io"
 	"os"
 	"strings"
+
+	"github.com/chzyer/readline"
 
 	"github.com/olekukonko/tablewriter"
 )
 
 func RunConsoleMode(parser parser.ParserService, mb backend.MemoryBackendService) {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("Welcome to gosql.")
+	l, err := readline.NewEx(&readline.Config{
+		Prompt:          "# ",
+		HistoryFile:     "/tmp/tmp",
+		InterruptPrompt: "^C",
+		EOFPrompt:       "exit",
+	})
+	if err != nil {
+		panic(err)
+	}
+	defer l.Close()
 
+	fmt.Println("Welcome to custom-database.")
+
+repl:
 	for {
 		fmt.Print("# ")
-		text, err := reader.ReadString('\n')
-		text = strings.Replace(text, "\n", "", -1)
+		line, err := l.Readline()
+		if err == readline.ErrInterrupt {
+			if len(line) == 0 {
+				break
+			} else {
+				continue repl
+			}
+		} else if err == io.EOF {
+			break
+		}
+		if err != nil {
+			fmt.Println("Error while reading line:", err)
+			continue repl
+		}
 
-		result, err := parser.Parse(text)
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "quit" || trimmed == "exit" || trimmed == "\\q" {
+			break
+		}
+
+		isDebug := strings.HasPrefix(trimmed, "ddl")
+		if isDebug {
+			tableName := strings.TrimSpace(trimmed[len("ddl"):])
+			line = fmt.Sprintf("SELECT * FROM %s;", tableName)
+		}
+
+		result, err := parser.Parse(line)
 		if err != nil {
 			fmt.Println(err)
-			continue
+			continue repl
 		}
 
 		results, err := mb.ExecuteStatement(result)
 		if err != nil {
 			fmt.Println(err)
-			continue
+			continue repl
+		}
+
+		if isDebug {
+			debugTable(results)
+			continue repl
 		}
 
 		if results != nil {
 			printTable(results)
-			continue
+			continue repl
 		}
 
 		fmt.Println("ok")
@@ -83,4 +124,35 @@ func printTable(results *models.Table) error {
 	fmt.Printf("(%d rows)\n", len(rows))
 
 	return nil
+}
+
+func debugTable(results *models.Table) {
+
+	if results == nil {
+		fmt.Println("Did not find any relation.")
+		return
+	}
+
+	fmt.Printf("Table \"%s\"\n", results.Name)
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Column", "Type", "Nullable"})
+	table.SetAutoFormatHeaders(false)
+	table.SetBorder(true)
+
+	rows := [][]string{}
+	for _, c := range results.Columns {
+		typeString := "integer"
+		switch c.Type {
+		case models.TextType:
+			typeString = "text"
+		}
+		nullable := ""
+		rows = append(rows, []string{c.Name, typeString, nullable})
+	}
+
+	table.AppendBulk(rows)
+	table.Render()
+
+	fmt.Println("")
 }
