@@ -90,9 +90,6 @@ func executeQuery(t *testing.T, query string) *QueryResponse {
 }
 
 func TestCreateAndQueryTable(t *testing.T) {
-	// cleanup := setupTestServer(t)
-	// defer cleanup()
-
 	t.Run("Create Table", func(t *testing.T) {
 		query := "CREATE TABLE test_table (id INT, name TEXT);"
 		response := executeQuery(t, query)
@@ -116,7 +113,7 @@ func TestCreateAndQueryTable(t *testing.T) {
 		response := executeQuery(t, query)
 		assert.Empty(t, response.Error)
 
-		want := `{"name":"","columns":[{"name":"id","type":1},{"name":"name","type":0}],"rows":[[1,"Rick"],[2,"Morty"]]}`
+		want := `{"name":"test_table","columns":[{"name":"id","type":1},{"name":"name","type":0}],"rows":[[1,"Rick"],[2,"Morty"]]}`
 
 		assert.Equal(t, want, response.Result)
 	})
@@ -126,7 +123,7 @@ func TestCreateAndQueryTable(t *testing.T) {
 		response := executeQuery(t, query)
 		assert.Empty(t, response.Error)
 
-		want := `{"name":"","columns":[{"name":"id","type":1},{"name":"name","type":0}],"rows":[[1,"Rick"],[2,"Morty"]]}`
+		want := `{"name":"test_table","columns":[{"name":"id","type":1},{"name":"name","type":0}],"rows":[[1,"Rick"],[2,"Morty"]]}`
 
 		assert.Equal(t, want, response.Result)
 	})
@@ -139,9 +136,6 @@ func TestCreateAndQueryTable(t *testing.T) {
 }
 
 func TestWhereClause(t *testing.T) {
-	// cleanup := setupTestServer(t)
-	// defer cleanup()
-
 	// Подготовка данных
 	t.Run("Setup Test Data", func(t *testing.T) {
 		queries := []string{
@@ -163,7 +157,7 @@ func TestWhereClause(t *testing.T) {
 		query := "SELECT id, name, age FROM test_table_2 WHERE id = 2;"
 		response := executeQuery(t, query)
 		assert.Empty(t, response.Error)
-		want := `{"name":"","columns":[{"name":"id","type":1},{"name":"name","type":0},{"name":"age","type":1}],"rows":[[2,"Bob",30]]}`
+		want := `{"name":"test_table_2","columns":[{"name":"id","type":1},{"name":"name","type":0},{"name":"age","type":1}],"rows":[[2,"Bob",30]]}`
 		assert.Equal(t, want, response.Result)
 	})
 
@@ -172,7 +166,7 @@ func TestWhereClause(t *testing.T) {
 		query := "SELECT id, name, age FROM test_table_2 WHERE age > 30;"
 		response := executeQuery(t, query)
 		assert.Empty(t, response.Error)
-		want := `{"name":"","columns":[{"name":"id","type":1},{"name":"name","type":0},{"name":"age","type":1}],"rows":[[3,"Charlie",35],[4,"David",40]]}`
+		want := `{"name":"test_table_2","columns":[{"name":"id","type":1},{"name":"name","type":0},{"name":"age","type":1}],"rows":[[3,"Charlie",35],[4,"David",40]]}`
 		assert.Equal(t, want, response.Result)
 	})
 
@@ -181,7 +175,7 @@ func TestWhereClause(t *testing.T) {
 		query := "SELECT id, name, age FROM test_table_2 WHERE age > 25 AND age < 40;"
 		response := executeQuery(t, query)
 		assert.Empty(t, response.Error)
-		want := `{"name":"","columns":[{"name":"id","type":1},{"name":"name","type":0},{"name":"age","type":1}],"rows":[[2,"Bob",30],[3,"Charlie",35]]}`
+		want := `{"name":"test_table_2","columns":[{"name":"id","type":1},{"name":"name","type":0},{"name":"age","type":1}],"rows":[[2,"Bob",30],[3,"Charlie",35]]}`
 		assert.Equal(t, want, response.Result)
 	})
 
@@ -190,18 +184,18 @@ func TestWhereClause(t *testing.T) {
 		query := "SELECT id, name, age FROM test_table_2 WHERE age = 25 OR age = 40;"
 		response := executeQuery(t, query)
 		assert.Empty(t, response.Error)
-		want := `{"name":"","columns":[{"name":"id","type":1},{"name":"name","type":0},{"name":"age","type":1}],"rows":[[1,"Alice",25],[4,"David",40]]}`
+		want := `{"name":"test_table_2","columns":[{"name":"id","type":1},{"name":"name","type":0},{"name":"age","type":1}],"rows":[[1,"Alice",25],[4,"David",40]]}`
 		assert.Equal(t, want, response.Result)
 	})
 
 	// Тест сложного условия с AND и OR
-	// t.Run("Complex AND OR Condition", func(t *testing.T) {
-	// 	query := "SELECT id, name, age FROM test_table_2 WHERE (age > 30 AND name = 'Charlie') OR (age < 30 AND name = 'Alice');"
-	// 	response := executeQuery(t, query)
-	// 	assert.Empty(t, response.Error)
-	// 	want := `{"name":"","columns":[{"name":"id","type":1},{"name":"name","type":0},{"name":"age","type":1}],"rows":[[1,"Alice",25],[3,"Charlie",35]]}`
-	// 	assert.Equal(t, want, response.Result)
-	// })
+	t.Run("Complex AND OR Condition", func(t *testing.T) {
+		query := "SELECT id, name, age FROM test_table_2 WHERE (age > 30 AND name = 'Charlie') OR (age < 30 AND name = 'Alice');"
+		response := executeQuery(t, query)
+		assert.Empty(t, response.Error)
+		want := `{"name":"test_table_2","columns":[{"name":"id","type":1},{"name":"name","type":0},{"name":"age","type":1}],"rows":[[1,"Alice",25],[3,"Charlie",35]]}`
+		assert.Equal(t, want, response.Result)
+	})
 
 	// Очистка
 	t.Run("Cleanup", func(t *testing.T) {
