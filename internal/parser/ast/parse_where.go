@@ -1,6 +1,8 @@
 package ast
 
-import "custom-database/internal/parser/lex"
+import (
+	"custom-database/internal/parser/lex"
+)
 
 type tokenWithPrior struct {
 	Token    *lex.Token
@@ -24,10 +26,25 @@ func parseWhereClause(tokens []*lex.Token, initialCursor uint, delimiter lex.Tok
 }
 
 func parseWhereExpression(tokens []*lex.Token, initialCursor uint, delimiters []lex.Token) (*WhereClause, uint, bool) {
-	whereTokens := addTokensPriority(tokens[initialCursor : len(tokens)-1])
+	// find first delimiter cursor
+	firstDelimiterCursor := uint(0)
+loop:
+	for i := initialCursor; i < uint(len(tokens)); i++ {
+		for _, delimiter := range delimiters {
+			if tokens[i].Value == delimiter.Value {
+				firstDelimiterCursor = i
+				break loop
+			}
+		}
+	}
+	if firstDelimiterCursor == 0 {
+		return nil, initialCursor, false
+	}
+
+	whereTokens := addTokensPriority(tokens[initialCursor:firstDelimiterCursor])
 	whereTree := parseTree(whereTokens)
 
-	return whereTree, uint(len(tokens) - 1), true
+	return whereTree, firstDelimiterCursor, true
 }
 
 func parseTree(tokens []*tokenWithPrior) *WhereClause {

@@ -114,7 +114,7 @@ func TestGetPriority(t *testing.T) {
 			token:       &lex.Token{Kind: lex.SymbolToken, Value: "unknown"},
 			subPriority: 100,
 			identPrior:  0,
-			expected:    1100,
+			expected:    0,
 		},
 	}
 

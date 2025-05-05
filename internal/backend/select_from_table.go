@@ -104,21 +104,13 @@ func (mb *memoryBackend) filterRow(columns []models.Column, row []interface{}, w
 		return true
 	}
 
-	return mb.filterByNode(columns, row, whereClause)
-}
-
-func (mb *memoryBackend) filterByNode(columns []models.Column, row []interface{}, whereClause *ast.WhereClause) bool {
-	if whereClause == nil {
-		return true
-	}
-
 	if whereClause.Token.Kind == lex.LogicalOperatorToken {
 		if whereClause.Token.Value == string(lex.AndOperator) {
-			return mb.filterByNode(columns, row, whereClause.Left) && mb.filterByNode(columns, row, whereClause.Right)
+			return mb.filterRow(columns, row, whereClause.Left) && mb.filterRow(columns, row, whereClause.Right)
 		}
 
 		if whereClause.Token.Value == string(lex.OrOperator) {
-			return mb.filterByNode(columns, row, whereClause.Left) || mb.filterByNode(columns, row, whereClause.Right)
+			return mb.filterRow(columns, row, whereClause.Left) || mb.filterRow(columns, row, whereClause.Right)
 		}
 	}
 

@@ -59,26 +59,3 @@ func parseSelectStatement(tokens []*lex.Token, initialCursor uint) (*SelectState
 
 	return statement, cursor, true
 }
-
-func isDelimiter(token *lex.Token, delimiters []lex.Token) bool {
-	for _, delimiter := range delimiters {
-		if delimiter.Equals(token) {
-			return true
-		}
-	}
-	return false
-}
-
-func isValidCursor(tokens []*lex.Token, cursor uint) bool {
-	if cursor >= uint(len(tokens)) {
-		helpMessage(tokens, cursor, "Unexpected end of input")
-		return false
-	}
-	return true
-}
-
-func isOperand(token *lex.Token) bool {
-	return token.Kind == lex.IdentifierToken ||
-		token.Kind == lex.StringToken ||
-		token.Kind == lex.NumericToken
-}
