@@ -45,6 +45,10 @@ func (mb *memoryBackend) insertIntoTable(statement *ast.InsertStatement) error {
 		if column.Type == models.TextType {
 			interfaceCells[i] = cell.AsText()
 		}
+
+		if column.Type == models.BoolType {
+			interfaceCells[i] = cell.AsBoolean()
+		}
 	}
 
 	err = mb.persistentStorage.Insert(statement.Table.Value, interfaceCells)
@@ -57,7 +61,8 @@ func (mb *memoryBackend) insertIntoTable(statement *ast.InsertStatement) error {
 		cells[i] = cell
 	}
 
-	return mb.memoryStorage.Insert(statement.Table.Value, cells)
+	return nil
+	// return mb.memoryStorage.Insert(statement.Table.Value, cells)
 }
 
 func (mb *memoryBackend) tokenToCell(t *lex.Token) MemoryCell {
@@ -76,6 +81,10 @@ func (mb *memoryBackend) tokenToCell(t *lex.Token) MemoryCell {
 	}
 
 	if t.Kind == lex.StringToken {
+		return MemoryCell(t.Value)
+	}
+
+	if t.Kind == lex.BooleanToken {
 		return MemoryCell(t.Value)
 	}
 

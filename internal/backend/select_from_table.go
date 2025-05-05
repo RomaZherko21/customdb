@@ -11,11 +11,6 @@ import (
 )
 
 func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*models.Table, error) {
-	// table, err := mb.memoryStorage.Select(statement.From.Value)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	table, err := mb.persistentStorage.Select(statement.From.Value)
 	if err != nil {
 		return nil, err
@@ -74,6 +69,10 @@ func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*model
 
 			if column.Type == models.TextType {
 				memoryCell = MemoryCell(cell.(string))
+			}
+
+			if column.Type == models.BoolType {
+				memoryCell = MemoryCell(fmt.Sprintf("%t", cell.(bool)))
 			}
 
 			newRow = append(newRow, memoryCell)

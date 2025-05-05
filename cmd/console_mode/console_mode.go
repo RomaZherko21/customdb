@@ -109,6 +109,9 @@ func printTable(results *models.Table) error {
 				r = fmt.Sprintf("%d", i)
 			case models.TextType:
 				r = cell.AsText()
+			case models.BoolType:
+				b := cell.AsBoolean()
+				r = fmt.Sprintf("%t", b)
 			}
 
 			row = append(row, r)
@@ -146,6 +149,8 @@ func debugTable(results *models.Table) {
 		switch c.Type {
 		case models.TextType:
 			typeString = "text"
+		case models.BoolType:
+			typeString = "boolean"
 		}
 		nullable := ""
 		rows = append(rows, []string{c.Name, typeString, nullable})

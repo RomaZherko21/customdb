@@ -8,6 +8,7 @@ const (
 	IdentifierToken
 	StringToken
 	NumericToken
+	BooleanToken
 	MathOperatorToken
 	LogicalOperatorToken
 )

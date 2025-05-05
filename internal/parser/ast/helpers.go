@@ -50,7 +50,7 @@ outer:
 func parseExpression(tokens []*lex.Token, initialCursor uint, _ lex.Token) (*Expression, uint, bool) {
 	cursor := initialCursor
 
-	kinds := []lex.TokenKind{lex.IdentifierToken, lex.NumericToken, lex.StringToken}
+	kinds := []lex.TokenKind{lex.IdentifierToken, lex.NumericToken, lex.StringToken, lex.BooleanToken}
 	for _, kind := range kinds {
 		t, newCursor, ok := parseToken(tokens, cursor, kind)
 		if ok {
@@ -75,20 +75,6 @@ func tokenFromSymbol(s lex.Symbol) lex.Token {
 	return lex.Token{
 		Kind:  lex.SymbolToken,
 		Value: string(s),
-	}
-}
-
-func tokenFromMathOperator(o lex.MathOperator) lex.Token {
-	return lex.Token{
-		Kind:  lex.MathOperatorToken,
-		Value: string(o),
-	}
-}
-
-func tokenFromLogicalOperator(o lex.LogicalOperator) lex.Token {
-	return lex.Token{
-		Kind:  lex.LogicalOperatorToken,
-		Value: string(o),
 	}
 }
 

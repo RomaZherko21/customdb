@@ -15,9 +15,13 @@ const (
 	IntoKeyword   Keyword = "into"
 	ValuesKeyword Keyword = "values"
 	WhereKeyword  Keyword = "where"
+	LimitKeyword  Keyword = "limit"
+	OffsetKeyword Keyword = "offset"
 	// Datatypes
 	IntKeyword  Keyword = "int"
 	TextKeyword Keyword = "text"
+	BoolKeyword Keyword = "bool"
+	NullKeyword Keyword = "null"
 )
 
 var keywords = []Keyword{
@@ -32,6 +36,10 @@ var keywords = []Keyword{
 	TextKeyword,
 	DropKeyword,
 	WhereKeyword,
+	BoolKeyword,
+	NullKeyword,
+	LimitKeyword,
+	OffsetKeyword,
 }
 
 type Symbol string
@@ -50,6 +58,18 @@ var symbols = []Symbol{
 	RightparenSymbol,
 	SemicolonSymbol,
 	AsteriskSymbol,
+}
+
+type BooleanKeyword string
+
+const (
+	TrueKeyword  BooleanKeyword = "true"
+	FalseKeyword BooleanKeyword = "false"
+)
+
+var booleanKeywords = []BooleanKeyword{
+	TrueKeyword,
+	FalseKeyword,
 }
 
 type MathOperator string

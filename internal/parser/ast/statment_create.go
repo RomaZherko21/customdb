@@ -20,7 +20,7 @@ func parseCreateTableStatement(tokens []*lex.Token, initialCursor uint) (*Create
 	}
 	cursor++
 
-	name, newCursor, ok := parseToken(tokens, cursor, lex.IdentifierToken)
+	tableName, newCursor, ok := parseToken(tokens, cursor, lex.IdentifierToken)
 	if !ok {
 		helpMessage(tokens, cursor, "Expected table name")
 		return nil, initialCursor, false
@@ -51,7 +51,7 @@ func parseCreateTableStatement(tokens []*lex.Token, initialCursor uint) (*Create
 	}
 
 	return &CreateTableStatement{
-		Name: *name,
+		Name: *tableName,
 		Cols: cols,
 	}, cursor, true
 }

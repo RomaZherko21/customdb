@@ -20,6 +20,8 @@ func (mb *memoryBackend) createTable(statement *ast.CreateTableStatement) error 
 			dt = models.IntType
 		case "text":
 			dt = models.TextType
+		case "bool":
+			dt = models.BoolType
 		default:
 			return fmt.Errorf("Invalid datatype: %s", col.Datatype.Value)
 		}

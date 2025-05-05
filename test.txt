@@ -1,9 +1,9 @@
-CREATE TABLE users (id INT, name TEXT);
+CREATE TABLE users (id INT, name TEXT, isAdmin BOOL);
 
-INSERT INTO users VALUES (1, 'Corey');
-INSERT INTO users VALUES (2, 'Moris');
+INSERT INTO users VALUES (1, 'Corey', true);
+INSERT INTO users VALUES (2, 'Moris', false);
 
-SELECT id, name FROM users;
+SELECT id, name, isAdmin FROM users;
 
 SELECT name FROM users;
 SELECT id FROM users;

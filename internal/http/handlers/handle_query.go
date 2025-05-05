@@ -106,6 +106,8 @@ func convertToJson(table *models.Table) (string, error) {
 				s = cell.AsInt()
 			case models.TextType:
 				s = cell.AsText()
+			case models.BoolType:
+				s = cell.AsBoolean()
 			}
 
 			jsonRow = append(jsonRow, s)

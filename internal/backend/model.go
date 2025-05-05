@@ -22,6 +22,14 @@ func (mc MemoryCell) AsText() string {
 	return string(mc)
 }
 
+func (mc MemoryCell) AsBoolean() bool {
+	if string(mc) == "true" {
+		return true
+	}
+
+	return false
+}
+
 type table struct {
 	columns     []string
 	columnTypes []models.ColumnType

@@ -10,11 +10,13 @@ type Column struct {
 const (
 	TextType ColumnType = iota
 	IntType
+	BoolType
 )
 
 type Cell interface {
 	AsText() string
 	AsInt() int32
+	AsBoolean() bool
 }
 
 type Table struct {
@@ -22,19 +24,3 @@ type Table struct {
 	Columns []Column `json:"columns"`
 	Rows    [][]Cell `json:"rows"`
 }
-
-// type MemoryCell []byte
-
-// func (mc MemoryCell) AsInt() int32 {
-// 	var i int32
-// 	err := binary.Read(bytes.NewBuffer(mc), binary.BigEndian, &i)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-
-// 	return i
-// }
-
-// func (mc MemoryCell) AsText() string {
-// 	return string(mc)
-// }

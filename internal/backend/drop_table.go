@@ -8,5 +8,6 @@ func (mb *memoryBackend) dropTable(statement *ast.DropTableStatement) error {
 		return err
 	}
 
-	return mb.memoryStorage.DropTable(statement.Table.Value)
+	return nil
+	// return mb.memoryStorage.DropTable(statement.Table.Value)
 }

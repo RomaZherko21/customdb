@@ -92,7 +92,7 @@ func TestLex(t *testing.T) {
 	})
 
 	t.Run("SELECT command with WHERE clause", func(t *testing.T) {
-		input := "SELECT id, name FROM users WHERE id = 1 AND name = 'John' OR name = 'Jane';"
+		input := "SELECT id, name FROM users WHERE id = 1 AND (name = 'John' OR name = 'Jane') AND is_active = true LIMIT 10 OFFSET 5;"
 		want := []*Token{
 			{Kind: KeywordToken, Value: "select"},
 			{Kind: IdentifierToken, Value: "id"},
@@ -105,6 +105,7 @@ func TestLex(t *testing.T) {
 			{Kind: MathOperatorToken, Value: "="},
 			{Kind: NumericToken, Value: "1"},
 			{Kind: LogicalOperatorToken, Value: "and"},
+			{Kind: SymbolToken, Value: "("},
 			{Kind: IdentifierToken, Value: "name"},
 			{Kind: MathOperatorToken, Value: "="},
 			{Kind: StringToken, Value: "John"},
@@ -112,6 +113,15 @@ func TestLex(t *testing.T) {
 			{Kind: IdentifierToken, Value: "name"},
 			{Kind: MathOperatorToken, Value: "="},
 			{Kind: StringToken, Value: "Jane"},
+			{Kind: SymbolToken, Value: ")"},
+			{Kind: LogicalOperatorToken, Value: "and"},
+			{Kind: IdentifierToken, Value: "is_active"},
+			{Kind: MathOperatorToken, Value: "="},
+			{Kind: KeywordToken, Value: "true"},
+			{Kind: KeywordToken, Value: "limit"},
+			{Kind: NumericToken, Value: "10"},
+			{Kind: KeywordToken, Value: "offset"},
+			{Kind: NumericToken, Value: "5"},
 			{Kind: SymbolToken, Value: ";"},
 		}
 
