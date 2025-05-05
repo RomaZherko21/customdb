@@ -2,7 +2,6 @@ package ast
 
 import (
 	"custom-database/internal/parser/lex"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -62,20 +61,16 @@ func TestParseSelectStatement(t *testing.T) {
 		}
 		result, cursor, ok := parseSelectStatement(tokens, 0)
 
-		for _, where := range result.Where {
-			fmt.Println("HEHE", where.Left.Literal.Value, where.Operator.Value, where.Right.Literal.Value)
-		}
-
 		require.True(t, ok)
 		require.Equal(t, uint(8), cursor)
 		require.Len(t, result.SelectedColumns, 1)
 		require.Equal(t, "users", result.From.Value)
 
-		require.Len(t, result.Where, 1)
 		// Проверяем условие WHERE (age = 18)
-		require.Equal(t, "age", result.Where[0].Left.Literal.Value)
-		require.Equal(t, "=", result.Where[0].Operator.Value)
-		require.Equal(t, "18", result.Where[0].Right.Literal.Value)
+		require.NotNil(t, result.Where)
+		require.Equal(t, "=", result.Where.Token.Value)
+		require.Equal(t, "age", result.Where.Left.Token.Value)
+		require.Equal(t, "18", result.Where.Right.Token.Value)
 	})
 
 	t.Run("valid SELECT statement with WHERE", func(t *testing.T) {
@@ -106,20 +101,21 @@ func TestParseSelectStatement(t *testing.T) {
 		require.Equal(t, "id", result.SelectedColumns[0].Literal.Value)
 		require.Equal(t, "name", result.SelectedColumns[1].Literal.Value)
 
-		require.Len(t, result.Where, 3)
+		// Проверяем дерево WHERE условий
+		require.NotNil(t, result.Where)
+		require.Equal(t, "and", result.Where.Token.Value)
 
-		// Проверяем первое условие WHERE (id > 1)
-		require.Equal(t, "id", result.Where[0].Left.Literal.Value)
-		require.Equal(t, ">", result.Where[0].Operator.Value)
-		require.Equal(t, "1", result.Where[0].Right.Literal.Value)
+		// Проверяем левую часть (id > 1)
+		require.NotNil(t, result.Where.Left)
+		require.Equal(t, ">", result.Where.Left.Token.Value)
+		require.Equal(t, "id", result.Where.Left.Left.Token.Value)
+		require.Equal(t, "1", result.Where.Left.Right.Token.Value)
 
-		// Проверяем логический оператор AND
-		require.Equal(t, "and", result.Where[1].Operator.Value)
-
-		// Проверяем второе условие WHERE (name = 'John')
-		require.Equal(t, "name", result.Where[2].Left.Literal.Value)
-		require.Equal(t, "=", result.Where[2].Operator.Value)
-		require.Equal(t, "'John'", result.Where[2].Right.Literal.Value)
+		// Проверяем правую часть (name = 'John')
+		require.NotNil(t, result.Where.Right)
+		require.Equal(t, "=", result.Where.Right.Token.Value)
+		require.Equal(t, "name", result.Where.Right.Left.Token.Value)
+		require.Equal(t, "'John'", result.Where.Right.Right.Token.Value)
 	})
 
 	t.Run("invalid SELECT statement - missing SELECT keyword", func(t *testing.T) {

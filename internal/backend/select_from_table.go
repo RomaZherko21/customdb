@@ -22,7 +22,7 @@ func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*model
 	}
 
 	// WHERE
-	if statement.Where != nil && len(statement.Where) > 0 {
+	if statement.Where != nil {
 		table.Rows = mb.filterRows(table.Columns, table.Rows, statement.Where)
 	}
 	//
@@ -88,7 +88,7 @@ func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*model
 	}, nil
 }
 
-func (mb *memoryBackend) filterRows(columns []models.Column, rows [][]interface{}, whereClause []*ast.WhereClause) [][]interface{} {
+func (mb *memoryBackend) filterRows(columns []models.Column, rows [][]interface{}, whereClause *ast.WhereClause) [][]interface{} {
 	filteredRows := [][]interface{}{}
 	for _, row := range rows {
 		if mb.filterRow(columns, row, whereClause) {
@@ -99,64 +99,56 @@ func (mb *memoryBackend) filterRows(columns []models.Column, rows [][]interface{
 	return filteredRows
 }
 
-func (mb *memoryBackend) filterRow(columns []models.Column, row []interface{}, whereClause []*ast.WhereClause) bool {
-	if len(whereClause) == 0 {
+func (mb *memoryBackend) filterRow(columns []models.Column, row []interface{}, whereClause *ast.WhereClause) bool {
+	if whereClause == nil {
 		return true
 	}
 
-	// Вычисляем все условия
-	conditions := make([]bool, 0)
-	logicalOps := make([]lex.Token, 0)
-
-	for _, clause := range whereClause {
-		if clause.Operator.Kind == lex.LogicalOperatorToken {
-			logicalOps = append(logicalOps, clause.Operator)
-			continue
-		}
-
-		leftVal, err := mb.getValueFromExpression(columns, row, clause.Left)
-		if err != nil {
-			return false
-		}
-
-		rightVal, err := mb.getValueFromExpression(columns, row, clause.Right)
-		if err != nil {
-			return false
-		}
-
-		condition := mb.evaluateCondition(leftVal, rightVal, clause.Operator.Value)
-		conditions = append(conditions, condition)
-	}
-
-	// Применяем логические операторы с учетом приоритета
-	result := conditions[0]
-	for i, op := range logicalOps {
-		if i >= len(conditions)-1 {
-			break
-		}
-
-		switch op.Value {
-		case string(lex.AndOperator):
-			result = result && conditions[i+1]
-		case string(lex.OrOperator):
-			result = result || conditions[i+1]
-		}
-	}
-
-	return result
+	return mb.filterByNode(columns, row, whereClause)
 }
 
-func (mb *memoryBackend) getValueFromExpression(columns []models.Column, row []interface{}, expr *ast.Expression) (interface{}, error) {
-	if expr.Literal.Kind == lex.IdentifierToken {
-		// Ищем индекс колонки
+func (mb *memoryBackend) filterByNode(columns []models.Column, row []interface{}, whereClause *ast.WhereClause) bool {
+	if whereClause == nil {
+		return true
+	}
+
+	if whereClause.Token.Kind == lex.LogicalOperatorToken {
+		if whereClause.Token.Value == string(lex.AndOperator) {
+			return mb.filterByNode(columns, row, whereClause.Left) && mb.filterByNode(columns, row, whereClause.Right)
+		}
+
+		if whereClause.Token.Value == string(lex.OrOperator) {
+			return mb.filterByNode(columns, row, whereClause.Left) || mb.filterByNode(columns, row, whereClause.Right)
+		}
+	}
+
+	if whereClause.Token.Kind == lex.MathOperatorToken {
+		leftVal, err := mb.getValueFromExpression(columns, row, whereClause.Left)
+		if err != nil {
+			return false
+		}
+
+		rightVal, err := mb.getValueFromExpression(columns, row, whereClause.Right)
+		if err != nil {
+			return false
+		}
+
+		return mb.evaluateCondition(leftVal, rightVal, whereClause.Token.Value)
+	}
+
+	return mb.filterRow(columns, row, whereClause)
+}
+
+func (mb *memoryBackend) getValueFromExpression(columns []models.Column, row []interface{}, expr *ast.WhereClause) (interface{}, error) {
+	if expr.Token.Kind == lex.IdentifierToken {
 		for i, column := range columns {
-			if column.Name == expr.Literal.Value {
+			if column.Name == expr.Token.Value {
 				return row[i], nil
 			}
 		}
-		return nil, fmt.Errorf("column not found: %s", expr.Literal.Value)
+		return nil, fmt.Errorf("column not found: %s", expr.Token.Value)
 	}
-	return expr.Literal.Value, nil
+	return expr.Token.Value, nil
 }
 
 func (mb *memoryBackend) evaluateCondition(left, right interface{}, operator string) bool {

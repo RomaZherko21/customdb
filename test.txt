@@ -8,7 +8,7 @@ SELECT id, name FROM users;
 SELECT name FROM users;
 SELECT id FROM users;
 
-SELECT id, name FROM users WHERE id > 1 AND name = 'Moris';
+SELECT id, name FROM users WHERE id > 1 AND id < 3 AND (name = 'Moris' OR name = 'James');
 
 DROP TABLE users;
 

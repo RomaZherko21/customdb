@@ -1,11 +1,13 @@
 package ast
 
-import "custom-database/internal/parser/lex"
+import (
+	"custom-database/internal/parser/lex"
+)
 
 func parseSelectStatement(tokens []*lex.Token, initialCursor uint) (*SelectStatement, uint, bool) {
 	statement := &SelectStatement{
 		SelectedColumns: []*Expression{},
-		Where:           []*WhereClause{},
+		Where:           &WhereClause{},
 	}
 
 	cursor := initialCursor
@@ -58,80 +60,6 @@ func parseSelectStatement(tokens []*lex.Token, initialCursor uint) (*SelectState
 	return statement, cursor, true
 }
 
-func parseWhereClause(tokens []*lex.Token, initialCursor uint, delimiter lex.Token) ([]*WhereClause, uint, bool) {
-	cursor := initialCursor
-
-	if !expectToken(tokens, cursor, tokenFromKeyword(lex.WhereKeyword)) {
-		return nil, initialCursor, true
-	}
-	cursor++
-
-	whereExps, newCursor, ok := parseWhereExpression(tokens, cursor, []lex.Token{delimiter})
-	if !ok {
-		return nil, initialCursor, false
-	}
-
-	return whereExps, newCursor, true
-}
-
-func parseWhereExpression(tokens []*lex.Token, initialCursor uint, delimiters []lex.Token) ([]*WhereClause, uint, bool) {
-	result := []*WhereClause{}
-	cursor := initialCursor
-
-loop:
-	for cursor < uint(len(tokens)) {
-		currentToken := tokens[cursor]
-
-		if isDelimiter(currentToken, delimiters) {
-			break loop
-		}
-
-		clause := &WhereClause{}
-
-		if currentToken.Kind == lex.LogicalOperatorToken {
-			clause.Operator = *currentToken
-			cursor++
-			if !isValidCursor(tokens, cursor) {
-				return nil, initialCursor, false
-			}
-			result = append(result, clause)
-			continue
-		}
-
-		if isOperand(currentToken) {
-			clause.Left = &Expression{Literal: currentToken}
-			cursor++
-			if !isValidCursor(tokens, cursor) {
-				return nil, initialCursor, false
-			}
-			currentToken = tokens[cursor]
-		}
-
-		if currentToken.Kind == lex.MathOperatorToken {
-			clause.Operator = *currentToken
-			cursor++
-			if !isValidCursor(tokens, cursor) {
-				return nil, initialCursor, false
-			}
-			currentToken = tokens[cursor]
-		}
-
-		if isOperand(currentToken) {
-			clause.Right = &Expression{Literal: currentToken}
-			cursor++
-		}
-
-		if !isValidWhereClause(clause) {
-			helpMessage(tokens, cursor, "Invalid WHERE clause: missing operand or operator")
-			return nil, initialCursor, false
-		}
-
-		result = append(result, clause)
-	}
-
-	return result, cursor, true
-}
-
 func isDelimiter(token *lex.Token, delimiters []lex.Token) bool {
 	for _, delimiter := range delimiters {
 		if delimiter.Equals(token) {
@@ -153,10 +81,4 @@ func isOperand(token *lex.Token) bool {
 	return token.Kind == lex.IdentifierToken ||
 		token.Kind == lex.StringToken ||
 		token.Kind == lex.NumericToken
-}
-
-func isValidWhereClause(clause *WhereClause) bool {
-	return clause.Left != nil &&
-		clause.Operator.Value != "" &&
-		clause.Right != nil
 }

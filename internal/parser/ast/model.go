@@ -51,11 +51,11 @@ type InsertStatement struct {
 type SelectStatement struct {
 	SelectedColumns []*Expression
 	From            lex.Token
-	Where           []*WhereClause
+	Where           *WhereClause
 }
 
 type WhereClause struct {
-	Left     *Expression
-	Right    *Expression
-	Operator lex.Token
+	Left  *WhereClause
+	Right *WhereClause
+	Token *lex.Token
 }
