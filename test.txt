@@ -1,14 +1,14 @@
-CREATE TABLE users (id INT, name TEXT, isAdmin BOOL);
+CREATE TABLE users (id INT, name TEXT, is_admin BOOLEAN);
 
 INSERT INTO users VALUES (1, 'Corey', true);
 INSERT INTO users VALUES (2, 'Moris', false);
 
-SELECT id, name, isAdmin FROM users;
+SELECT id, name, is_admin FROM users;
 
 SELECT name FROM users;
 SELECT id FROM users;
 
-SELECT id, name FROM users WHERE id > 1 AND id < 3 AND (name = 'Moris' OR name = 'James');
+SELECT id, name FROM users WHERE id > 1 AND id < 3 AND (name = 'Moris' OR name = 'James') AND is_admin = true;
 
 DROP TABLE users;
 

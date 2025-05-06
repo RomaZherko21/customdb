@@ -3,6 +3,7 @@ package backend
 import (
 	"custom-database/internal/models"
 	"custom-database/internal/parser/ast"
+	"custom-database/internal/parser/lex"
 	"fmt"
 )
 
@@ -16,11 +17,11 @@ func (mb *memoryBackend) createTable(statement *ast.CreateTableStatement) error 
 		var dt models.ColumnType
 
 		switch col.Datatype.Value {
-		case "int":
+		case string(lex.IntKeyword):
 			dt = models.IntType
-		case "text":
+		case string(lex.TextKeyword):
 			dt = models.TextType
-		case "bool":
+		case string(lex.BooleanTypeKeyword):
 			dt = models.BoolType
 		default:
 			return fmt.Errorf("Invalid datatype: %s", col.Datatype.Value)
@@ -37,5 +38,6 @@ func (mb *memoryBackend) createTable(statement *ast.CreateTableStatement) error 
 		return err
 	}
 
-	return mb.memoryStorage.CreateTable(statement.Name.Value, columns)
+	// return mb.memoryStorage.CreateTable(statement.Name.Value, columns)
+	return nil
 }

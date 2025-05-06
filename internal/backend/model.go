@@ -2,7 +2,6 @@ package backend
 
 import (
 	"bytes"
-	"custom-database/internal/models"
 	"encoding/binary"
 )
 
@@ -28,10 +27,4 @@ func (mc MemoryCell) AsBoolean() bool {
 	}
 
 	return false
-}
-
-type table struct {
-	columns     []string
-	columnTypes []models.ColumnType
-	rows        [][]MemoryCell
 }
