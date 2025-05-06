@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"custom-database/internal/models"
 	"custom-database/internal/parser/ast"
-	"custom-database/internal/parser/lex"
 	"encoding/binary"
 	"fmt"
 	"slices"
@@ -16,46 +15,65 @@ func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*model
 		return nil, err
 	}
 
-	// WHERE
 	if statement.Where != nil {
 		table.Rows = mb.filterRows(table.Columns, table.Rows, statement.Where)
 	}
-	//
 
-	//// FILTERING
+	table.Rows, table.Columns = mb.getOnlySelectedColumns(table.Rows, table.Columns, statement)
+
+	rows, err := mb.convertRowsToCells(table.Rows, table.Columns)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.Table{
+		Name:    table.Name,
+		Columns: table.Columns,
+		Rows:    rows,
+	}, nil
+}
+
+func (mb *memoryBackend) getOnlySelectedColumns(allRows [][]interface{}, allColumns []models.Column, statement *ast.SelectStatement) ([][]interface{}, []models.Column) {
+	rows := [][]interface{}{}
+	columns := []models.Column{}
+
 	if statement.SelectedColumns != nil && len(statement.SelectedColumns) != 0 {
 		selectedColumnNames := []string{}
 		for _, value := range statement.SelectedColumns {
 			selectedColumnNames = append(selectedColumnNames, value.Literal.Value)
 		}
 
-		for i, row := range table.Rows {
+		for _, row := range allRows {
 			resultRow := []interface{}{}
-			for i, column := range table.Columns {
+			for i, column := range allColumns {
 				if slices.Contains(selectedColumnNames, column.Name) {
 					resultRow = append(resultRow, row[i])
 				}
 			}
 
-			table.Rows[i] = resultRow
+			rows = append(rows, resultRow)
 		}
 		newColumns := []models.Column{}
-		for _, column := range table.Columns {
+		for _, column := range allColumns {
 			if slices.Contains(selectedColumnNames, column.Name) {
 				newColumns = append(newColumns, column)
 			}
 		}
-		table.Columns = newColumns
+		columns = newColumns
+	} else {
+		return allRows, allColumns
 	}
 
-	////
+	return rows, columns
+}
 
-	rows := [][]models.Cell{}
+func (mb *memoryBackend) convertRowsToCells(rows [][]interface{}, columns []models.Column) ([][]models.Cell, error) {
+	convertedRows := [][]models.Cell{}
 
-	for _, row := range table.Rows {
+	for _, row := range rows {
 		newRow := []models.Cell{}
 		for i, cell := range row {
-			column := table.Columns[i]
+			column := columns[i]
 			var memoryCell MemoryCell
 
 			if column.Type == models.IntType {
@@ -77,82 +95,8 @@ func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*model
 
 			newRow = append(newRow, memoryCell)
 		}
-		rows = append(rows, newRow)
+		convertedRows = append(convertedRows, newRow)
 	}
 
-	return &models.Table{
-		Name:    table.Name,
-		Columns: table.Columns,
-		Rows:    rows,
-	}, nil
-}
-
-func (mb *memoryBackend) filterRows(columns []models.Column, rows [][]interface{}, whereClause *ast.WhereClause) [][]interface{} {
-	filteredRows := [][]interface{}{}
-	for _, row := range rows {
-		if mb.filterRow(columns, row, whereClause) {
-			filteredRows = append(filteredRows, row)
-		}
-	}
-
-	return filteredRows
-}
-
-func (mb *memoryBackend) filterRow(columns []models.Column, row []interface{}, whereClause *ast.WhereClause) bool {
-	if whereClause == nil {
-		return true
-	}
-
-	if whereClause.Token.Kind == lex.LogicalOperatorToken {
-		if whereClause.Token.Value == string(lex.AndOperator) {
-			return mb.filterRow(columns, row, whereClause.Left) && mb.filterRow(columns, row, whereClause.Right)
-		}
-
-		if whereClause.Token.Value == string(lex.OrOperator) {
-			return mb.filterRow(columns, row, whereClause.Left) || mb.filterRow(columns, row, whereClause.Right)
-		}
-	}
-
-	if whereClause.Token.Kind == lex.MathOperatorToken {
-		leftVal, err := mb.getValueFromExpression(columns, row, whereClause.Left)
-		if err != nil {
-			return false
-		}
-
-		rightVal, err := mb.getValueFromExpression(columns, row, whereClause.Right)
-		if err != nil {
-			return false
-		}
-
-		return mb.evaluateCondition(leftVal, rightVal, whereClause.Token.Value)
-	}
-
-	return mb.filterRow(columns, row, whereClause)
-}
-
-func (mb *memoryBackend) getValueFromExpression(columns []models.Column, row []interface{}, expr *ast.WhereClause) (interface{}, error) {
-	if expr.Token.Kind == lex.IdentifierToken {
-		for i, column := range columns {
-			if column.Name == expr.Token.Value {
-				return row[i], nil
-			}
-		}
-		return nil, fmt.Errorf("column not found: %s", expr.Token.Value)
-	}
-	return expr.Token.Value, nil
-}
-
-func (mb *memoryBackend) evaluateCondition(left, right interface{}, operator string) bool {
-	switch operator {
-	case string(lex.EqualOperator):
-		return fmt.Sprintf("%v", left) == fmt.Sprintf("%v", right)
-	case string(lex.NotEqualOperator):
-		return fmt.Sprintf("%v", left) != fmt.Sprintf("%v", right)
-	case string(lex.GreaterThanOperator):
-		return fmt.Sprintf("%v", left) > fmt.Sprintf("%v", right)
-	case string(lex.LessThanOperator):
-		return fmt.Sprintf("%v", left) < fmt.Sprintf("%v", right)
-	default:
-		return false
-	}
+	return convertedRows, nil
 }

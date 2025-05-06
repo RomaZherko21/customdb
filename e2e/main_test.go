@@ -118,6 +118,16 @@ func TestCreateAndQueryTable(t *testing.T) {
 		assert.Equal(t, want, response.Result)
 	})
 
+	t.Run("Select Data with only some columns", func(t *testing.T) {
+		query := "SELECT id, name FROM test_table;"
+		response := executeQuery(t, query)
+		assert.Empty(t, response.Error)
+
+		want := `{"name":"test_table","columns":[{"name":"id","type":1},{"name":"name","type":0}],"rows":[[1,"Rick"],[2,"Morty"]]}`
+
+		assert.Equal(t, want, response.Result)
+	})
+
 	t.Run("Select Data with *", func(t *testing.T) {
 		query := "SELECT * FROM test_table;"
 		response := executeQuery(t, query)
