@@ -86,7 +86,7 @@ func addTokensPriority(tokens []*lex.Token) []*tokenWithPrior {
 			continue
 		}
 
-		if token.Kind == lex.IdentifierToken || token.Kind == lex.StringToken || token.Kind == lex.NumericToken {
+		if token.Kind == lex.IdentifierToken || token.Kind == lex.StringToken || token.Kind == lex.NumericToken || token.Kind == lex.BooleanToken {
 			identPrior++
 		}
 
@@ -101,7 +101,7 @@ func addTokensPriority(tokens []*lex.Token) []*tokenWithPrior {
 
 func getPriority(token *lex.Token, subPriority uint, identPrior uint) uint {
 
-	if token.Kind == lex.IdentifierToken || token.Kind == lex.StringToken || token.Kind == lex.NumericToken {
+	if token.Kind == lex.IdentifierToken || token.Kind == lex.StringToken || token.Kind == lex.NumericToken || token.Kind == lex.BooleanToken {
 		return 40 + identPrior + subPriority
 	}
 

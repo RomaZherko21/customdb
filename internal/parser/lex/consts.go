@@ -18,10 +18,10 @@ const (
 	LimitKeyword  Keyword = "limit"
 	OffsetKeyword Keyword = "offset"
 	// Datatypes
-	IntKeyword  Keyword = "int"
-	TextKeyword Keyword = "text"
-	BoolKeyword Keyword = "bool"
-	NullKeyword Keyword = "null"
+	IntKeyword         Keyword = "int"
+	TextKeyword        Keyword = "text"
+	BooleanTypeKeyword Keyword = "boolean"
+	NullKeyword        Keyword = "null"
 )
 
 var keywords = []Keyword{
@@ -36,7 +36,7 @@ var keywords = []Keyword{
 	TextKeyword,
 	DropKeyword,
 	WhereKeyword,
-	BoolKeyword,
+	BooleanTypeKeyword,
 	NullKeyword,
 	LimitKeyword,
 	OffsetKeyword,

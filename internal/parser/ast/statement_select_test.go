@@ -32,6 +32,8 @@ func TestParseSelectStatement(t *testing.T) {
 			{Kind: lex.IdentifierToken, Value: "id"},
 			{Kind: lex.SymbolToken, Value: ","},
 			{Kind: lex.IdentifierToken, Value: "name"},
+			{Kind: lex.SymbolToken, Value: ","},
+			{Kind: lex.IdentifierToken, Value: "is_active"},
 			{Kind: lex.KeywordToken, Value: "from"},
 			{Kind: lex.IdentifierToken, Value: "users"},
 			{Kind: lex.SymbolToken, Value: ";"},
@@ -40,10 +42,11 @@ func TestParseSelectStatement(t *testing.T) {
 		result, cursor, ok := parseSelectStatement(tokens, 0)
 
 		require.True(t, ok)
-		require.Equal(t, uint(6), cursor)
-		require.Len(t, result.SelectedColumns, 2)
+		require.Equal(t, uint(8), cursor)
+		require.Len(t, result.SelectedColumns, 3)
 		require.Equal(t, "id", result.SelectedColumns[0].Literal.Value)
 		require.Equal(t, "name", result.SelectedColumns[1].Literal.Value)
+		require.Equal(t, "is_active", result.SelectedColumns[2].Literal.Value)
 		require.Equal(t, "users", result.From.Value)
 	})
 
@@ -73,12 +76,14 @@ func TestParseSelectStatement(t *testing.T) {
 		require.Equal(t, "18", result.Where.Right.Token.Value)
 	})
 
-	t.Run("valid SELECT statement with WHERE", func(t *testing.T) {
+	t.Run("valid SELECT statement with complex WHERE", func(t *testing.T) {
 		tokens := []*lex.Token{
 			{Kind: lex.KeywordToken, Value: "select"},
 			{Kind: lex.IdentifierToken, Value: "id"},
 			{Kind: lex.SymbolToken, Value: ","},
 			{Kind: lex.IdentifierToken, Value: "name"},
+			{Kind: lex.SymbolToken, Value: ","},
+			{Kind: lex.IdentifierToken, Value: "is_active"},
 			{Kind: lex.KeywordToken, Value: "from"},
 			{Kind: lex.IdentifierToken, Value: "users"},
 			{Kind: lex.KeywordToken, Value: "where"},
@@ -89,6 +94,10 @@ func TestParseSelectStatement(t *testing.T) {
 			{Kind: lex.IdentifierToken, Value: "name"},
 			{Kind: lex.MathOperatorToken, Value: "="},
 			{Kind: lex.StringToken, Value: "'John'"},
+			{Kind: lex.LogicalOperatorToken, Value: "and"},
+			{Kind: lex.IdentifierToken, Value: "is_active"},
+			{Kind: lex.MathOperatorToken, Value: "="},
+			{Kind: lex.BooleanToken, Value: "true"},
 			{Kind: lex.SymbolToken, Value: ";"},
 		}
 
@@ -97,9 +106,10 @@ func TestParseSelectStatement(t *testing.T) {
 		require.True(t, ok)
 		require.Equal(t, "users", result.From.Value)
 
-		require.Len(t, result.SelectedColumns, 2)
+		require.Len(t, result.SelectedColumns, 3)
 		require.Equal(t, "id", result.SelectedColumns[0].Literal.Value)
 		require.Equal(t, "name", result.SelectedColumns[1].Literal.Value)
+		require.Equal(t, "is_active", result.SelectedColumns[2].Literal.Value)
 
 		// Проверяем дерево WHERE условий
 		require.NotNil(t, result.Where)
@@ -113,9 +123,16 @@ func TestParseSelectStatement(t *testing.T) {
 
 		// Проверяем правую часть (name = 'John')
 		require.NotNil(t, result.Where.Right)
-		require.Equal(t, "=", result.Where.Right.Token.Value)
-		require.Equal(t, "name", result.Where.Right.Left.Token.Value)
-		require.Equal(t, "'John'", result.Where.Right.Right.Token.Value)
+		require.Equal(t, "and", result.Where.Right.Token.Value)
+
+		require.Equal(t, "=", result.Where.Right.Left.Token.Value)
+		require.Equal(t, "name", result.Where.Right.Left.Left.Token.Value)
+		require.Equal(t, "'John'", result.Where.Right.Left.Right.Token.Value)
+
+		// Проверяем правую часть (is_active = true)
+		require.Equal(t, "=", result.Where.Right.Right.Token.Value)
+		require.Equal(t, "is_active", result.Where.Right.Right.Left.Token.Value)
+		require.Equal(t, "true", result.Where.Right.Right.Right.Token.Value)
 	})
 
 	t.Run("invalid SELECT statement - missing SELECT keyword", func(t *testing.T) {

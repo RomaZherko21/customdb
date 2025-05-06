@@ -8,7 +8,7 @@ import (
 
 func TestLex(t *testing.T) {
 	t.Run("CREATE TABLE command", func(t *testing.T) {
-		input := "CREATE TABLE users (id INT, name TEXT);"
+		input := "CREATE TABLE users (id INT, name TEXT, is_active BOOLEAN);"
 		want := []*Token{
 			{Kind: KeywordToken, Value: "create"},
 			{Kind: KeywordToken, Value: "table"},
@@ -19,6 +19,9 @@ func TestLex(t *testing.T) {
 			{Kind: SymbolToken, Value: ","},
 			{Kind: IdentifierToken, Value: "name"},
 			{Kind: KeywordToken, Value: "text"},
+			{Kind: SymbolToken, Value: ","},
+			{Kind: IdentifierToken, Value: "is_active"},
+			{Kind: KeywordToken, Value: "boolean"},
 			{Kind: SymbolToken, Value: ")"},
 			{Kind: SymbolToken, Value: ";"},
 		}
@@ -36,7 +39,7 @@ func TestLex(t *testing.T) {
 	})
 
 	t.Run("INSERT INTO command", func(t *testing.T) {
-		input := "INSERT INTO users (id, name) VALUES (1, 'Phil');"
+		input := "INSERT INTO users (id, name, is_active) VALUES (1, 'Phil', true);"
 		want := []*Token{
 			{Kind: KeywordToken, Value: "insert"},
 			{Kind: KeywordToken, Value: "into"},
@@ -45,12 +48,16 @@ func TestLex(t *testing.T) {
 			{Kind: IdentifierToken, Value: "id"},
 			{Kind: SymbolToken, Value: ","},
 			{Kind: IdentifierToken, Value: "name"},
+			{Kind: SymbolToken, Value: ","},
+			{Kind: IdentifierToken, Value: "is_active"},
 			{Kind: SymbolToken, Value: ")"},
 			{Kind: KeywordToken, Value: "values"},
 			{Kind: SymbolToken, Value: "("},
 			{Kind: NumericToken, Value: "1"},
 			{Kind: SymbolToken, Value: ","},
 			{Kind: StringToken, Value: "Phil"},
+			{Kind: SymbolToken, Value: ","},
+			{Kind: BooleanToken, Value: "true"},
 			{Kind: SymbolToken, Value: ")"},
 			{Kind: SymbolToken, Value: ";"},
 		}
@@ -117,7 +124,7 @@ func TestLex(t *testing.T) {
 			{Kind: LogicalOperatorToken, Value: "and"},
 			{Kind: IdentifierToken, Value: "is_active"},
 			{Kind: MathOperatorToken, Value: "="},
-			{Kind: KeywordToken, Value: "true"},
+			{Kind: BooleanToken, Value: "true"},
 			{Kind: KeywordToken, Value: "limit"},
 			{Kind: NumericToken, Value: "10"},
 			{Kind: KeywordToken, Value: "offset"},
