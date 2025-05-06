@@ -52,6 +52,8 @@ type SelectStatement struct {
 	SelectedColumns []*Expression
 	From            lex.Token
 	Where           *WhereClause
+	Limit           int
+	Offset          int
 }
 
 type WhereClause struct {

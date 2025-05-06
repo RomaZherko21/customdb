@@ -50,6 +50,36 @@ func TestParseSelectStatement(t *testing.T) {
 		require.Equal(t, "users", result.From.Value)
 	})
 
+	t.Run("valid SELECT statement with FROM with limit and offset", func(t *testing.T) {
+		tokens := []*lex.Token{
+			{Kind: lex.KeywordToken, Value: "select"},
+			{Kind: lex.IdentifierToken, Value: "id"},
+			{Kind: lex.SymbolToken, Value: ","},
+			{Kind: lex.IdentifierToken, Value: "name"},
+			{Kind: lex.SymbolToken, Value: ","},
+			{Kind: lex.IdentifierToken, Value: "is_active"},
+			{Kind: lex.KeywordToken, Value: "from"},
+			{Kind: lex.IdentifierToken, Value: "users"},
+			{Kind: lex.KeywordToken, Value: "limit"},
+			{Kind: lex.NumericToken, Value: "10"},
+			{Kind: lex.KeywordToken, Value: "offset"},
+			{Kind: lex.NumericToken, Value: "5"},
+			{Kind: lex.SymbolToken, Value: ";"},
+		}
+
+		result, cursor, ok := parseSelectStatement(tokens, 0)
+
+		require.True(t, ok)
+		require.Equal(t, uint(12), cursor)
+		require.Equal(t, "users", result.From.Value)
+		require.Equal(t, 10, result.Limit)
+		require.Equal(t, 5, result.Offset)
+		require.Len(t, result.SelectedColumns, 3)
+		require.Equal(t, "id", result.SelectedColumns[0].Literal.Value)
+		require.Equal(t, "name", result.SelectedColumns[1].Literal.Value)
+		require.Equal(t, "is_active", result.SelectedColumns[2].Literal.Value)
+	})
+
 	t.Run("valid SELECT statement with simple WHERE", func(t *testing.T) {
 		tokens := []*lex.Token{
 			{Kind: lex.KeywordToken, Value: "select"},

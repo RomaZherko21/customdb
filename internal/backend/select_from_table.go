@@ -21,6 +21,14 @@ func (mb *memoryBackend) selectFromTable(statement *ast.SelectStatement) (*model
 
 	table.Rows, table.Columns = mb.getOnlySelectedColumns(table.Rows, table.Columns, statement)
 
+	if statement.Limit != 0 {
+		table.Rows = table.Rows[:statement.Limit]
+	}
+
+	if statement.Offset != 0 {
+		table.Rows = table.Rows[statement.Offset:]
+	}
+
 	rows, err := mb.convertRowsToCells(table.Rows, table.Columns)
 	if err != nil {
 		return nil, err

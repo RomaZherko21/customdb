@@ -189,6 +189,24 @@ func TestWhereClause(t *testing.T) {
 		assert.Equal(t, want, response.Result)
 	})
 
+	// Тест условия с LIMIT
+	t.Run("LIMIT Condition", func(t *testing.T) {
+		query := "SELECT id, name, age, is_admin FROM test_table_2 LIMIT 1;"
+		response := executeQuery(t, query)
+		assert.Empty(t, response.Error)
+		want := `{"name":"test_table_2","columns":[{"name":"id","type":1},{"name":"name","type":0},{"name":"age","type":1},{"name":"is_admin","type":2}],"rows":[[1,"Alice",25,true]]}`
+		assert.Equal(t, want, response.Result)
+	})
+
+	// Тест условия с OFFSET
+	t.Run("OFFSET Condition", func(t *testing.T) {
+		query := "SELECT id, name, age, is_admin FROM test_table_2 OFFSET 1;"
+		response := executeQuery(t, query)
+		assert.Empty(t, response.Error)
+		want := `{"name":"test_table_2","columns":[{"name":"id","type":1},{"name":"name","type":0},{"name":"age","type":1},{"name":"is_admin","type":2}],"rows":[[2,"Bob",30,false],[3,"Charlie",35,true],[4,"David",40,false]]}`
+		assert.Equal(t, want, response.Result)
+	})
+
 	// Тест условия с OR
 	t.Run("OR Condition", func(t *testing.T) {
 		query := "SELECT id, name, age, is_admin FROM test_table_2 WHERE age = 25 OR age = 40;"
