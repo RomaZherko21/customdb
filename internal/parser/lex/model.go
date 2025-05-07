@@ -9,6 +9,7 @@ const (
 	StringToken
 	NumericToken
 	BooleanToken
+	NullToken
 	MathOperatorToken
 	LogicalOperatorToken
 )

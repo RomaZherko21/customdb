@@ -85,20 +85,32 @@ func (mb *memoryBackend) convertRowsToCells(rows [][]interface{}, columns []mode
 			var memoryCell MemoryCell
 
 			if column.Type == models.IntType {
-				buf := new(bytes.Buffer)
-				err := binary.Write(buf, binary.BigEndian, int32(cell.(float64)))
-				if err != nil {
-					return nil, fmt.Errorf("failed to convert int: %w", err)
+				if cell == nil {
+					memoryCell = MemoryCell("null")
+				} else {
+					buf := new(bytes.Buffer)
+					err := binary.Write(buf, binary.BigEndian, int32(cell.(float64)))
+					if err != nil {
+						return nil, fmt.Errorf("failed to convert int: %w", err)
+					}
+					memoryCell = MemoryCell(buf.Bytes())
 				}
-				memoryCell = MemoryCell(buf.Bytes())
 			}
 
 			if column.Type == models.TextType {
-				memoryCell = MemoryCell(cell.(string))
+				if cell == nil {
+					memoryCell = MemoryCell("null")
+				} else {
+					memoryCell = MemoryCell(cell.(string))
+				}
 			}
 
 			if column.Type == models.BoolType {
-				memoryCell = MemoryCell(fmt.Sprintf("%t", cell.(bool)))
+				if cell == nil {
+					memoryCell = MemoryCell("null")
+				} else {
+					memoryCell = MemoryCell(fmt.Sprintf("%t", cell.(bool)))
+				}
 			}
 
 			newRow = append(newRow, memoryCell)

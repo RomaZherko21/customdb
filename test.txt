@@ -2,6 +2,7 @@ CREATE TABLE users (id INT, name TEXT, is_admin BOOLEAN);
 
 INSERT INTO users VALUES (1, 'Corey', true);
 INSERT INTO users VALUES (2, 'Moris', false);
+INSERT INTO users VALUES (1, null, true);
 
 SELECT id, name, is_admin FROM users;
 

@@ -28,3 +28,7 @@ func (mc MemoryCell) AsBoolean() bool {
 
 	return false
 }
+
+func (mc MemoryCell) IsNull() bool {
+	return string(mc) == "null"
+}

@@ -21,7 +21,6 @@ const (
 	IntKeyword         Keyword = "int"
 	TextKeyword        Keyword = "text"
 	BooleanTypeKeyword Keyword = "boolean"
-	NullKeyword        Keyword = "null"
 )
 
 var keywords = []Keyword{
@@ -37,7 +36,6 @@ var keywords = []Keyword{
 	DropKeyword,
 	WhereKeyword,
 	BooleanTypeKeyword,
-	NullKeyword,
 	LimitKeyword,
 	OffsetKeyword,
 }
@@ -71,6 +69,12 @@ var booleanKeywords = []BooleanKeyword{
 	TrueKeyword,
 	FalseKeyword,
 }
+
+type NullKeyword string
+
+const (
+	NullValueKeyword NullKeyword = "null"
+)
 
 type MathOperator string
 

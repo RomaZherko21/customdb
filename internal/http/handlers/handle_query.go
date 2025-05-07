@@ -105,7 +105,11 @@ func convertToJson(table *models.Table) (string, error) {
 			case models.IntType:
 				s = cell.AsInt()
 			case models.TextType:
-				s = cell.AsText()
+				if cell.IsNull() {
+					s = nil
+				} else {
+					s = cell.AsText()
+				}
 			case models.BoolType:
 				s = cell.AsBoolean()
 			}

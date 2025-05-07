@@ -105,13 +105,25 @@ func printTable(results *models.Table) error {
 			r := ""
 			switch typ {
 			case models.IntType:
-				i := cell.AsInt()
-				r = fmt.Sprintf("%d", i)
+				if cell.IsNull() {
+					r = "null"
+				} else {
+					i := cell.AsInt()
+					r = fmt.Sprintf("%d", i)
+				}
 			case models.TextType:
-				r = cell.AsText()
+				if cell.IsNull() {
+					r = "null"
+				} else {
+					r = cell.AsText()
+				}
 			case models.BoolType:
-				b := cell.AsBoolean()
-				r = fmt.Sprintf("%t", b)
+				if cell.IsNull() {
+					r = "null"
+				} else {
+					b := cell.AsBoolean()
+					r = fmt.Sprintf("%t", b)
+				}
 			}
 
 			row = append(row, r)

@@ -17,6 +17,7 @@ type Cell interface {
 	AsText() string
 	AsInt() int32
 	AsBoolean() bool
+	IsNull() bool
 }
 
 type Table struct {

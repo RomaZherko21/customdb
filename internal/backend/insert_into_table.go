@@ -32,22 +32,34 @@ func (mb *memoryBackend) insertIntoTable(statement *ast.InsertStatement) error {
 	}
 
 	for i, cell := range row {
-		if cell == nil {
-			return fmt.Errorf("failed to convert cell to interface: nil not allowed")
-		}
+		// if cell == nil {
+		// 	return fmt.Errorf("failed to convert cell to interface: nil not allowed")
+		// }
 
 		column := columns[i]
 
 		if column.Type == models.IntType {
-			interfaceCells[i] = cell.AsInt()
+			if cell.IsNull() {
+				interfaceCells[i] = nil
+			} else {
+				interfaceCells[i] = cell.AsInt()
+			}
 		}
 
 		if column.Type == models.TextType {
-			interfaceCells[i] = cell.AsText()
+			if cell.IsNull() {
+				interfaceCells[i] = nil
+			} else {
+				interfaceCells[i] = cell.AsText()
+			}
 		}
 
 		if column.Type == models.BoolType {
-			interfaceCells[i] = cell.AsBoolean()
+			if cell.IsNull() {
+				interfaceCells[i] = nil
+			} else {
+				interfaceCells[i] = cell.AsBoolean()
+			}
 		}
 	}
 
@@ -85,6 +97,10 @@ func (mb *memoryBackend) tokenToCell(t *lex.Token) MemoryCell {
 	}
 
 	if t.Kind == lex.BooleanToken {
+		return MemoryCell(t.Value)
+	}
+
+	if t.Kind == lex.NullToken {
 		return MemoryCell(t.Value)
 	}
 
