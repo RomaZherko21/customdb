@@ -116,8 +116,3 @@ func readString(buffer []byte, offset int) (string, int) {
 	// Возвращаем строку и общее количество прочитанных байт
 	return string(data), 4 + int(strLen)
 }
-
-// Вычисляет размер, необходимый для записи строки
-func getStringSize(value string) int {
-	return 4 + len(value) // 4 байта на длину + сама строка
-}

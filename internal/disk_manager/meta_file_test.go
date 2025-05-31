@@ -1,6 +1,7 @@
 package disk_manager
 
 import (
+	"fmt"
 	"os"
 	"testing"
 )
@@ -11,9 +12,10 @@ func TestCreateMetaFile(t *testing.T) {
 		metaFile := &MetaFile{
 			Name: "users",
 			Columns: []Column{
-				{Name: "id", Type: TypeInt32},
-				{Name: "name", Type: TypeText},
-				{Name: "is_admin", Type: TypeBoolean},
+				{Name: "id", Type: TypeInt32, IsNullable: false},
+				{Name: "name", Type: TypeText, IsNullable: true},
+				{Name: "is_admin", Type: TypeBoolean, IsNullable: false},
+				{Name: "surname", Type: TypeText, IsNullable: true},
 			},
 		}
 
@@ -165,5 +167,98 @@ func TestCreateMetaFile(t *testing.T) {
 		}
 
 		os.Remove(fileName)
+	})
+}
+
+func TestNullableColumns(t *testing.T) {
+	t.Run("Serialize and Deserialize Nullable Columns", func(t *testing.T) {
+		metaFile := &MetaFile{
+			Name: "users",
+			Columns: []Column{
+				{Name: "id", Type: TypeInt32, IsNullable: false},
+				{Name: "name", Type: TypeText, IsNullable: true},
+				{Name: "email", Type: TypeText, IsNullable: true},
+				{Name: "age", Type: TypeInt32, IsNullable: true},
+				{Name: "is_admin", Type: TypeBoolean, IsNullable: false},
+			},
+		}
+
+		// Сериализуем
+		data := serializeMetaFile(metaFile)
+
+		// Проверяем bitmap в сериализованных данных
+		// Смещение bitmap после имени таблицы и количества колонок
+		offset := len(metaFile.Name) + 4 + 4 // длина имени + 4 байта длины + 4 байта кол-ва колонок
+		nullBitmap := readUint32(data, offset)
+
+		// Проверяем, что нужные биты установлены
+		expectedNullable := []int{1, 2, 3} // индексы nullable колонок
+		for i := 0; i < 8; i++ {
+			isNullable := false
+			for _, idx := range expectedNullable {
+				if i == idx {
+					isNullable = true
+					break
+				}
+			}
+			if getBit(nullBitmap, i) != isNullable {
+				t.Errorf("Column %d nullable status: got %v, want %v",
+					i, getBit(nullBitmap, i), isNullable)
+			}
+		}
+
+		// Десериализуем и проверяем
+		deserializedMeta := deserializeMetaFile(data)
+
+		// Проверяем, что все колонки правильно помечены как nullable
+		for i, col := range metaFile.Columns {
+			deserializedCol := deserializedMeta.Columns[i]
+			if deserializedCol.IsNullable != col.IsNullable {
+				t.Errorf("Column %d (%s) nullable status: got %v, want %v",
+					i, col.Name, deserializedCol.IsNullable, col.IsNullable)
+			}
+		}
+	})
+
+	t.Run("Empty Table with Nullable Flag", func(t *testing.T) {
+		metaFile := &MetaFile{
+			Name:    "empty_table",
+			Columns: []Column{},
+		}
+
+		data := serializeMetaFile(metaFile)
+		deserializedMeta := deserializeMetaFile(data)
+
+		if len(deserializedMeta.Columns) != 0 {
+			t.Errorf("Expected empty columns, got %d columns", len(deserializedMeta.Columns))
+		}
+	})
+
+	t.Run("Max Columns with Mixed Nullable", func(t *testing.T) {
+		// Создаем таблицу с максимальным количеством колонок
+		columns := make([]Column, MAX_COLUMNS)
+		for i := 0; i < MAX_COLUMNS; i++ {
+			columns[i] = Column{
+				Name:       fmt.Sprintf("col_%d", i),
+				Type:       TypeInt32,
+				IsNullable: i%2 == 0, // Четные колонки nullable
+			}
+		}
+
+		metaFile := &MetaFile{
+			Name:    "max_columns",
+			Columns: columns,
+		}
+
+		data := serializeMetaFile(metaFile)
+		deserializedMeta := deserializeMetaFile(data)
+
+		for i, col := range metaFile.Columns {
+			deserializedCol := deserializedMeta.Columns[i]
+			if deserializedCol.IsNullable != col.IsNullable {
+				t.Errorf("Column %d nullable status: got %v, want %v",
+					i, deserializedCol.IsNullable, col.IsNullable)
+			}
+		}
 	})
 }

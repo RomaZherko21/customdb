@@ -5,6 +5,11 @@ import (
 	"testing"
 )
 
+// Вычисляет размер, необходимый для записи строки
+func getStringSize(value string) int {
+	return 4 + len(value) // 4 байта на длину + сама строка
+}
+
 func TestInt32Operations(t *testing.T) {
 	t.Run("Positive Numbers", func(t *testing.T) {
 		buffer := make([]byte, 4)

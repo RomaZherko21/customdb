@@ -12,8 +12,9 @@ const (
 )
 
 type Column struct {
-	Name string
-	Type ColumnType
+	Name       string
+	Type       ColumnType
+	IsNullable bool
 }
 
 type MetaFile struct {
@@ -24,6 +25,7 @@ type MetaFile struct {
 // [4 байта] длина имени таблицы
 // [N байт] имя таблицы
 // [4 байта] количество колонок
+// [2 байта] null bitmap (1 бит на колонку)
 // Для каждой колонки:
 //   [4 байта] длина имени колонки
 //   [N байт] имя колонки
