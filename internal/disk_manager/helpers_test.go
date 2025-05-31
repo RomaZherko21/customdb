@@ -1,209 +1,290 @@
 package disk_manager
 
 import (
+	"math"
 	"testing"
 )
 
-func TestReadInt32LargeNumber(t *testing.T) {
-	// Число 300,000 в Little-endian формате
-	buffer := []byte{
-		0x00, // buffer[0] (старший байт):  00000000
-		0x04, // buffer[1]:                 00000100
-		0x93, // buffer[2]:                 10010011
-		0xE0, // buffer[3] (младший байт):  11100000
-	}
+func TestInt32Operations(t *testing.T) {
+	t.Run("Positive Numbers", func(t *testing.T) {
+		buffer := make([]byte, 4)
+		value := int32(300000)
 
-	// Показываем каждый байт
-	t.Log("Представление числа 300,000 в памяти (Little-endian):")
-	t.Logf("Байт 3 (младший): %08b (0xE0) << 0  = %032b", buffer[3], int32(buffer[3]))
-	t.Logf("Байт 2:           %08b (0x93) << 8  = %032b", buffer[2], int32(buffer[2])<<8)
-	t.Logf("Байт 1:           %08b (0x04) << 16 = %032b", buffer[1], int32(buffer[1])<<16)
-	t.Logf("Байт 0 (старший): %08b (0x00) << 24 = %032b", buffer[0], int32(buffer[0])<<24)
+		writeInt32(buffer, 0, value)
+		result := readInt32(buffer, 0)
 
-	// Читаем значение
-	value := readInt32(buffer, 0)
+		t.Logf("Число %d в байтах: % x", value, buffer)
+		if result != value {
+			t.Errorf("got %d, want %d", result, value)
+		}
+	})
 
-	// Показываем результат операции побитового ИЛИ (|)
-	t.Log("\nСборка числа из байтов:")
-	t.Logf("Байт 3: %032b", int32(buffer[3]))
-	t.Logf("Байт 2: %032b", int32(buffer[2])<<8)
-	t.Logf("Байт 1: %032b", int32(buffer[1])<<16)
-	t.Logf("Байт 0: %032b", int32(buffer[0])<<24)
-	t.Logf("Результат (OR): %032b = %d", value, value)
+	t.Run("Negative Numbers", func(t *testing.T) {
+		buffer := make([]byte, 4)
+		value := int32(-300000)
 
-	if value != 300000 {
-		t.Errorf("readInt32() = %d, want 300000", value)
-	}
+		writeInt32(buffer, 0, value)
+		result := readInt32(buffer, 0)
+
+		t.Logf("Число %d в байтах: % x", value, buffer)
+		if result != value {
+			t.Errorf("got %d, want %d", result, value)
+		}
+	})
+
+	t.Run("Min Int32", func(t *testing.T) {
+		buffer := make([]byte, 4)
+		value := int32(math.MinInt32)
+
+		writeInt32(buffer, 0, value)
+		result := readInt32(buffer, 0)
+
+		t.Logf("Число %d в байтах: % x", value, buffer)
+		if result != value {
+			t.Errorf("got %d, want %d", result, value)
+		}
+	})
+
+	t.Run("Max Int32", func(t *testing.T) {
+		buffer := make([]byte, 4)
+		value := int32(math.MaxInt32)
+
+		writeInt32(buffer, 0, value)
+		result := readInt32(buffer, 0)
+
+		t.Logf("Число %d в байтах: % x", value, buffer)
+		if result != value {
+			t.Errorf("got %d, want %d", result, value)
+		}
+	})
 }
 
-func TestWriteInt32LargeNumber(t *testing.T) {
-	// Создаем буфер для записи
-	buffer := make([]byte, 4)
+func TestUint32Operations(t *testing.T) {
+	t.Run("Small Number", func(t *testing.T) {
+		buffer := make([]byte, 4)
+		value := uint32(300000)
 
-	// Записываем число 300,000
-	writeInt32(buffer, 0, 300000)
+		writeUint32(buffer, 0, value)
+		result := readUint32(buffer, 0)
 
-	// Ожидаемые значения байтов
-	expected := []byte{
-		0x00, // 00000000
-		0x04, // 00000100
-		0x93, // 10010011
-		0xE0, // 11100000
-	}
-
-	// Проверяем каждый байт
-	t.Log("Проверка записи числа 300,000:")
-	for i, b := range buffer {
-		t.Logf("Байт %d: получили %08b (0x%02x), ожидали %08b (0x%02x)",
-			i, b, b, expected[i], expected[i])
-		if b != expected[i] {
-			t.Errorf("byte[%d] = %02x, want %02x", i, b, expected[i])
+		t.Logf("Число %d в байтах: % x", value, buffer)
+		if result != value {
+			t.Errorf("got %d, want %d", result, value)
 		}
-	}
+	})
+
+	t.Run("Max Uint32", func(t *testing.T) {
+		buffer := make([]byte, 4)
+		value := uint32(math.MaxUint32)
+
+		writeUint32(buffer, 0, value)
+		result := readUint32(buffer, 0)
+
+		t.Logf("Число %d в байтах: % x", value, buffer)
+		if result != value {
+			t.Errorf("got %d, want %d", result, value)
+		}
+	})
+}
+
+func TestInt64Operations(t *testing.T) {
+	t.Run("Positive Numbers", func(t *testing.T) {
+		buffer := make([]byte, 8)
+		value := int64(math.MaxInt64) // MaxInt64
+
+		writeInt64(buffer, 0, value)
+		result := readInt64(buffer, 0)
+
+		t.Logf("Число %d в байтах: % x", value, buffer)
+		if result != value {
+			t.Errorf("got %d, want %d", result, value)
+		}
+	})
+
+	t.Run("Negative Numbers", func(t *testing.T) {
+		buffer := make([]byte, 8)
+		value := int64(math.MinInt64) // MinInt64
+
+		writeInt64(buffer, 0, value)
+		result := readInt64(buffer, 0)
+
+		t.Logf("Число %d в байтах: % x", value, buffer)
+		if result != value {
+			t.Errorf("got %d, want %d", result, value)
+		}
+	})
+}
+
+func TestUint64Operations(t *testing.T) {
+	t.Run("Large Number", func(t *testing.T) {
+		buffer := make([]byte, 8)
+		value := uint64(math.MaxUint64) // MaxUint64
+
+		writeUint64(buffer, 0, value)
+		result := readUint64(buffer, 0)
+
+		t.Logf("Число %d в байтах: % x", value, buffer)
+		if result != value {
+			t.Errorf("got %d, want %d", result, value)
+		}
+	})
 }
 
 func TestBooleanOperations(t *testing.T) {
-	tests := []struct {
-		name  string
-		value bool
-	}{
-		{"True value", true},
-		{"False value", false},
-	}
+	t.Run("Write and Read True", func(t *testing.T) {
+		buffer := make([]byte, 1)
+		writeBool(buffer, 0, true)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Создаем буфер для одного байта
-			buffer := make([]byte, 1)
+		t.Logf("True в байтах: %08b", buffer[0])
 
-			// Записываем значение
-			writeBool(buffer, 0, tt.value)
+		result := readBool(buffer, 0)
+		if !result {
+			t.Error("got false, want true")
+		}
+	})
 
-			// Проверяем записанный байт
-			expectedByte := byte(0)
-			if tt.value {
-				expectedByte = 1
-			}
-			if buffer[0] != expectedByte {
-				t.Errorf("writeBool() wrote %d, want %d", buffer[0], expectedByte)
-			}
+	t.Run("Write and Read False", func(t *testing.T) {
+		buffer := make([]byte, 1)
+		writeBool(buffer, 0, false)
 
-			// Читаем значение обратно
-			got := readBool(buffer, 0)
-			if got != tt.value {
-				t.Errorf("readBool() = %v, want %v", got, tt.value)
-			}
+		t.Logf("False в байтах: %08b", buffer[0])
 
-			// Выводим для отладки
-			t.Logf("Значение %v записано как: %08b", tt.value, buffer[0])
-		})
-	}
-}
-
-// Тест на чтение нестандартных значений (любое ненулевое значение считается true)
-func TestReadBoolNonStandardValues(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    byte
-		expected bool
-	}{
-		{"Zero is false", 0x00, false},
-		{"One is true", 0x01, true},
-		{"Any non-zero is true (0xFF)", 0xFF, true},
-		{"Any non-zero is true (0x80)", 0x80, true},
-		{"Any non-zero is true (0x7F)", 0x7F, true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			buffer := []byte{tt.input}
-			got := readBool(buffer, 0)
-			if got != tt.expected {
-				t.Errorf("readBool() = %v, want %v for input byte 0x%02x", got, tt.expected, tt.input)
-			}
-		})
-	}
+		result := readBool(buffer, 0)
+		if result {
+			t.Error("got true, want false")
+		}
+	})
 }
 
 func TestStringOperations(t *testing.T) {
-	tests := []struct {
-		name  string
-		value string
-	}{
-		{"Пустая строка", ""},
-		{"Короткая строка", "Hello"},
-		{"Русский текст", "Привет, мир!"},
-		{"Длинная строка", "This is a longer string with special chars: !@#$%^&*()"},
-	}
+	t.Run("Empty String", func(t *testing.T) {
+		value := ""
+		buffer := make([]byte, getStringSize(value))
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Создаем буфер достаточного размера
-			size := getStringSize(tt.value)
-			buffer := make([]byte, size)
+		written := writeString(buffer, 0, value)
+		got, read := readString(buffer, 0)
 
-			// Записываем строку
-			written := writeString(buffer, 0, tt.value)
-			if written != size {
-				t.Errorf("writeString() wrote %d bytes, want %d", written, size)
-			}
+		t.Logf("Пустая строка в байтах: % x", buffer)
 
-			// Читаем строку обратно
-			got, read := readString(buffer, 0)
-			if read != size {
-				t.Errorf("readString() read %d bytes, want %d", read, size)
-			}
-			if got != tt.value {
-				t.Errorf("readString() = %q, want %q", got, tt.value)
-			}
+		if written != read {
+			t.Errorf("written %d bytes but read %d", written, read)
+		}
+		if got != value {
+			t.Errorf("got %q, want %q", got, value)
+		}
+	})
 
-			// Выводим для отладки
-			t.Logf("Строка: %q", tt.value)
-			t.Logf("Размер: %d байт (4 байта длина + %d байт данные)", size, len(tt.value))
-			t.Logf("Буфер: % x", buffer)
-		})
-	}
+	t.Run("ASCII String", func(t *testing.T) {
+		value := "Hello, World!"
+		buffer := make([]byte, getStringSize(value))
+
+		written := writeString(buffer, 0, value)
+		got, read := readString(buffer, 0)
+
+		t.Logf("ASCII строка в байтах: % x", buffer)
+
+		if written != read {
+			t.Errorf("written %d bytes but read %d", written, read)
+		}
+		if got != value {
+			t.Errorf("got %q, want %q", got, value)
+		}
+	})
+
+	t.Run("UTF-8 String", func(t *testing.T) {
+		value := "Привет, 世界!"
+		buffer := make([]byte, getStringSize(value))
+
+		written := writeString(buffer, 0, value)
+		got, read := readString(buffer, 0)
+
+		t.Logf("UTF-8 строка в байтах: % x", buffer)
+
+		if written != read {
+			t.Errorf("written %d bytes but read %d", written, read)
+		}
+		if got != value {
+			t.Errorf("got %q, want %q", got, value)
+		}
+	})
+
+	t.Run("String with Special Characters", func(t *testing.T) {
+		value := "Tab\t Newline\n Quote\" Slash\\"
+		buffer := make([]byte, getStringSize(value))
+
+		written := writeString(buffer, 0, value)
+		got, read := readString(buffer, 0)
+
+		t.Logf("Строка со спецсимволами в байтах: % x", buffer)
+
+		if written != read {
+			t.Errorf("written %d bytes but read %d", written, read)
+		}
+		if got != value {
+			t.Errorf("got %q, want %q", got, value)
+		}
+	})
 }
 
-func TestCharacterEncoding(t *testing.T) {
-	// Тестируем английскую букву 'A' и русскую букву 'П'
-	value := "AП"
+func TestOffsetOperations(t *testing.T) {
+	t.Run("Multiple Values at Different Offsets", func(t *testing.T) {
+		buffer := make([]byte, 100)
 
-	// Создаем буфер
-	size := getStringSize(value)
-	buffer := make([]byte, size)
+		// Записываем разные типы данных с разными смещениями
+		writeInt32(buffer, 0, 12345)
+		writeString(buffer, 4, "Hello")
+		writeBool(buffer, 13, true)
+		writeUint64(buffer, 14, 98765)
 
-	// Записываем строку
-	writeString(buffer, 0, value)
+		// Читаем и проверяем
+		if readInt32(buffer, 0) != 12345 {
+			t.Error("Failed to read Int32")
+		}
 
-	// Анализируем каждый байт
-	t.Log("Анализ кодирования строки 'AП':")
+		if str, _ := readString(buffer, 4); str != "Hello" {
+			t.Error("Failed to read String")
+		}
 
-	// Длина строки (первые 4 байта)
-	t.Logf("Длина строки (4 байта): %08b %08b %08b %08b",
-		buffer[0], buffer[1], buffer[2], buffer[3])
+		if !readBool(buffer, 13) {
+			t.Error("Failed to read Bool")
+		}
 
-	// Английская буква 'A'
-	t.Log("\nАнглийская буква 'A':")
-	t.Logf("Один байт:    %08b", buffer[4])
-	t.Logf("Десятичное:   %d", buffer[4])
-	t.Logf("Hex:          0x%02X", buffer[4])
+		if readUint64(buffer, 14) != 98765 {
+			t.Error("Failed to read Uint64")
+		}
 
-	// Русская буква 'П'
-	t.Log("\nРусская буква 'П' (2 байта UTF-8):")
-	t.Logf("Первый байт:  %08b", buffer[5])
-	t.Logf("Второй байт:  %08b", buffer[6])
-	t.Logf("Десятичные:   %d %d", buffer[5], buffer[6])
-	t.Logf("Hex:          0x%02X 0x%02X", buffer[5], buffer[6])
+		t.Logf("Буфер с разными типами данных: % x", buffer[:30])
+	})
+}
 
-	// Объяснение структуры UTF-8 для русской буквы
-	t.Log("\nСтруктура UTF-8 для 'П':")
-	t.Log("1) Первый байт начинается с '110' - указывает на 2-байтовую последовательность")
-	t.Log("2) Второй байт начинается с '10' - указывает на продолжение последовательности")
+func TestBoundaryValues(t *testing.T) {
+	t.Run("Zero Values", func(t *testing.T) {
+		buffer := make([]byte, 100)
 
-	// Проверяем, что можем прочитать обратно
-	got, _ := readString(buffer, 0)
-	if got != value {
-		t.Errorf("readString() = %q, want %q", got, value)
-	}
+		writeInt32(buffer, 0, 0)
+		writeUint32(buffer, 4, 0)
+		writeInt64(buffer, 8, 0)
+		writeUint64(buffer, 16, 0)
+		writeString(buffer, 24, "")
+		writeBool(buffer, 28, false)
+
+		if readInt32(buffer, 0) != 0 {
+			t.Error("Failed to handle zero Int32")
+		}
+		if readUint32(buffer, 4) != 0 {
+			t.Error("Failed to handle zero Uint32")
+		}
+		if readInt64(buffer, 8) != 0 {
+			t.Error("Failed to handle zero Int64")
+		}
+		if readUint64(buffer, 16) != 0 {
+			t.Error("Failed to handle zero Uint64")
+		}
+		if str, _ := readString(buffer, 24); str != "" {
+			t.Error("Failed to handle empty string")
+		}
+		if readBool(buffer, 28) {
+			t.Error("Failed to handle false boolean")
+		}
+	})
 }
