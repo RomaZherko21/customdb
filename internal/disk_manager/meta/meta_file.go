@@ -3,6 +3,7 @@ package meta
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	bs "custom-database/internal/disk_manager/binary_serializer"
 )
@@ -15,10 +16,14 @@ const (
 	DATA_TYPE_SIZE    = 1 // Размер типа данных в uint8
 )
 
-func CreateMetaFile(metaFile *MetaFile) {
-	file, err := os.Create(metaFile.Name + ".meta")
+func CreateMetaFile(metaFile *MetaFile, filePath string) error {
+	if _, err := os.Stat(filepath.Join(filePath, metaFile.Name+".meta")); err == nil {
+		return fmt.Errorf("CreateMetaFile(): table already exists: %w", err)
+	}
+
+	file, err := os.Create(filepath.Join(filePath, metaFile.Name+".meta"))
 	if err != nil {
-		fmt.Printf("Failed to create file: %v", err)
+		return fmt.Errorf("CreateMetaFile(): os.Create: %w", err)
 	}
 	defer file.Close()
 
@@ -26,8 +31,10 @@ func CreateMetaFile(metaFile *MetaFile) {
 
 	_, err = file.Write(data)
 	if err != nil {
-		fmt.Printf("Failed to write page: %v", err)
+		return fmt.Errorf("CreateMetaFile(): file.Write: %w", err)
 	}
+
+	return nil
 }
 
 // serializePage преобразует Page в []byte для записи на диск

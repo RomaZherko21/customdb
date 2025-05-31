@@ -1,19 +1,19 @@
 package data
 
 type PageHeader struct {
-	PageId   int32
-	PageSize int32
+	PageId   uint32
+	PageSize uint16
 }
 
 type PageSlot struct {
-	RowId     int32
-	Offset    int32
-	Size      int32
+	RowId     uint16
+	Offset    uint16
+	Size      uint16
 	IsDeleted bool
 }
 
 type Page struct {
-	Header *PageHeader
+	Header PageHeader
 	Slots  []PageSlot
 	Data   []byte
 }

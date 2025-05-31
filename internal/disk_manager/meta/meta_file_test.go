@@ -25,7 +25,10 @@ func TestCreateMetaFile(t *testing.T) {
 		}
 
 		// Создаем файл
-		CreateMetaFile(metaFile)
+		err := CreateMetaFile(metaFile, "")
+		if err != nil {
+			t.Fatalf("Failed to create meta file: %v", err)
+		}
 
 		// Проверяем что файл создан
 		fileName := metaFile.Name + ".meta"
@@ -68,7 +71,7 @@ func TestCreateMetaFile(t *testing.T) {
 		}
 
 		// Очистка: удаляем созданный файл
-		// os.Remove(fileName)
+		os.Remove(fileName)
 	})
 
 	t.Run("Meta File with Empty Columns", func(t *testing.T) {
@@ -77,7 +80,10 @@ func TestCreateMetaFile(t *testing.T) {
 			Columns: []Column{},
 		}
 
-		CreateMetaFile(metaFile)
+		err := CreateMetaFile(metaFile, "")
+		if err != nil {
+			t.Fatalf("Failed to create meta file: %v", err)
+		}
 
 		fileName := metaFile.Name + ".meta"
 		data, err := os.ReadFile(fileName)
@@ -109,7 +115,10 @@ func TestCreateMetaFile(t *testing.T) {
 			},
 		}
 
-		CreateMetaFile(metaFile)
+		err := CreateMetaFile(metaFile, "")
+		if err != nil {
+			t.Fatalf("Failed to create meta file: %v", err)
+		}
 
 		fileName := metaFile.Name + ".meta"
 		data, err := os.ReadFile(fileName)
@@ -148,7 +157,10 @@ func TestCreateMetaFile(t *testing.T) {
 			},
 		}
 
-		CreateMetaFile(metaFile)
+		err := CreateMetaFile(metaFile, "")
+		if err != nil {
+			t.Fatalf("Failed to create meta file: %v", err)
+		}
 
 		fileName := metaFile.Name + ".meta"
 		data, err := os.ReadFile(fileName)
