@@ -1,8 +1,10 @@
-package disk_manager
+package data
 
 import (
 	"fmt"
 	"os"
+
+	bs "custom-database/internal/disk_manager/binary_serializer"
 )
 
 const (
@@ -26,7 +28,7 @@ func newPage(pageID int32) *Page {
 	}
 }
 
-func createDataFile(filename string) {
+func CreateDataFile(filename string) {
 	file, err := os.Create(filename + ".data")
 	if err != nil {
 		fmt.Printf("Failed to create file: %v", err)
@@ -48,17 +50,17 @@ func serializePage(page *Page) []byte {
 	buffer := make([]byte, PAGE_SIZE)
 
 	// 1. Сериализуем заголовок (первые PAGE_HEADER_SIZE байт)
-	writeInt32(buffer, 0, page.Header.PageId)
-	writeInt32(buffer, 4, page.Header.PageSize)
+	bs.WriteInt32(buffer, 0, page.Header.PageId)
+	bs.WriteInt32(buffer, 4, page.Header.PageSize)
 
 	// 2. Сериализуем слоты (следующие SLOTS_SPACE байт)
 	slotsOffset := PAGE_HEADER_SIZE
 	for i, slot := range page.Slots {
 		offset := slotsOffset + (i * ONE_SLOT_SIZE)
-		writeInt32(buffer, offset, slot.RowId)
-		writeInt32(buffer, offset+4, slot.Offset)
-		writeInt32(buffer, offset+8, slot.Size)
-		writeBool(buffer, offset+12, slot.IsDeleted)
+		bs.WriteInt32(buffer, offset, slot.RowId)
+		bs.WriteInt32(buffer, offset+4, slot.Offset)
+		bs.WriteInt32(buffer, offset+8, slot.Size)
+		bs.WriteBool(buffer, offset+12, slot.IsDeleted)
 	}
 
 	// 3. Копируем данные (оставшиеся DATA_SIZE байт)
@@ -68,8 +70,8 @@ func serializePage(page *Page) []byte {
 	return buffer
 }
 
-// deserializePage восстанавливает Page из []byte прочитанных с диска
-func deserializePage(data []byte) *Page {
+// DeserializePage восстанавливает Page из []byte прочитанных с диска
+func DeserializePage(data []byte) *Page {
 	page := &Page{
 		Header: &PageHeader{},
 		Slots:  make([]PageSlot, MAX_SLOTS),
@@ -77,21 +79,21 @@ func deserializePage(data []byte) *Page {
 	}
 
 	// 1. Десериализуем заголовок
-	page.Header.PageId = readInt32(data, 0)
-	page.Header.PageSize = readInt32(data, 4)
+	page.Header.PageId = bs.ReadInt32(data, 0)
+	page.Header.PageSize = bs.ReadInt32(data, 4)
 
 	// 2. Десериализуем слоты
 	slotsOffset := PAGE_HEADER_SIZE
 	for i := 0; i < MAX_SLOTS; i++ {
 		offset := slotsOffset + (i * ONE_SLOT_SIZE)
-		rowID := readInt32(data, offset)
+		rowID := bs.ReadInt32(data, offset)
 		// Если rowID != 0, значит слот содержит данные
 		if rowID != 0 {
 			slot := &PageSlot{
 				RowId:     rowID,
-				Offset:    readInt32(data, offset+4),
-				Size:      readInt32(data, offset+8),
-				IsDeleted: data[offset+12] == 1,
+				Offset:    bs.ReadInt32(data, offset+4),
+				Size:      bs.ReadInt32(data, offset+8),
+				IsDeleted: bs.ReadBool(data, offset+12),
 			}
 			page.Slots[i] = *slot
 		}

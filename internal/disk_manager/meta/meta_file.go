@@ -1,8 +1,10 @@
-package disk_manager
+package meta
 
 import (
 	"fmt"
 	"os"
+
+	bs "custom-database/internal/disk_manager/binary_serializer"
 )
 
 const (
@@ -16,16 +18,16 @@ const (
 func calculateFileSize(metaFile *MetaFile) int {
 	columnSize := 0
 	for _, column := range metaFile.Columns {
-		columnSize += TEXT_TYPE_HEADER + len(column.Name) + DATA_TYPE_SIZE
+		columnSize += bs.TEXT_TYPE_HEADER + len(column.Name) + DATA_TYPE_SIZE
 	}
 
-	return TEXT_TYPE_HEADER + len(metaFile.Name) +
+	return bs.TEXT_TYPE_HEADER + len(metaFile.Name) +
 		COLUMN_COUNT_SIZE + // количество колонок в uint8
 		NULL_BITMAP_SIZE + // null_bitmap size в uint32
 		columnSize
 }
 
-func createMetaFile(metaFile *MetaFile) {
+func CreateMetaFile(metaFile *MetaFile) {
 	file, err := os.Create(metaFile.Name + ".meta")
 	if err != nil {
 		fmt.Printf("Failed to create file: %v", err)
@@ -46,10 +48,10 @@ func serializeMetaFile(metaFile *MetaFile) []byte {
 	buffer := make([]byte, calculateFileSize(metaFile))
 
 	// 1. Сериализуем имя таблицы
-	offset := writeString(buffer, 0, metaFile.Name)
+	offset := bs.WriteString(buffer, 0, metaFile.Name)
 
 	// 2. Сериализуем количество колонок
-	writeUint8(buffer, offset, uint8(len(metaFile.Columns)))
+	bs.WriteUint8(buffer, offset, uint8(len(metaFile.Columns)))
 	offset += COLUMN_COUNT_SIZE
 
 	// 3. Сериализуем null nullBitmap
@@ -61,15 +63,15 @@ func serializeMetaFile(metaFile *MetaFile) []byte {
 			nullBitmap = clearBit(nullBitmap, i)
 		}
 	}
-	writeUint32(buffer, offset, nullBitmap)
+	bs.WriteUint32(buffer, offset, nullBitmap)
 	offset += NULL_BITMAP_SIZE
 
 	// 4. Сериализуем каждую колонку
 	for _, column := range metaFile.Columns {
 		// [N байт] имя колонки
-		offset += writeString(buffer, offset, column.Name)
+		offset += bs.WriteString(buffer, offset, column.Name)
 		// [1 байт] тип данных (enum)
-		writeUint8(buffer, offset, uint8(column.Type))
+		bs.WriteUint8(buffer, offset, uint8(column.Type))
 		offset += DATA_TYPE_SIZE
 	}
 	return buffer
@@ -79,23 +81,23 @@ func deserializeMetaFile(data []byte) *MetaFile {
 	metaFile := &MetaFile{}
 
 	// 1. Читаем имя таблицы
-	fileName, offset := readString(data, 0)
+	fileName, offset := bs.ReadString(data, 0)
 	metaFile.Name = fileName
 
 	// 2. Читаем количество колонок
-	columnsCount := readUint8(data, offset)
+	columnsCount := bs.ReadUint8(data, offset)
 	metaFile.Columns = make([]Column, columnsCount)
 	offset += COLUMN_COUNT_SIZE
 
 	// 3. Читаем bitmap для nullable колонок
-	nullBitmap := readUint32(data, offset)
+	nullBitmap := bs.ReadUint32(data, offset)
 	offset += NULL_BITMAP_SIZE
 
 	// 4. Читаем информацию о колонках
 	for i := 0; i < len(metaFile.Columns); i++ {
-		columnName, columnNameOffset := readString(data, offset)
+		columnName, columnNameOffset := bs.ReadString(data, offset)
 
-		columnType := ColumnType(readUint8(data, offset+columnNameOffset))
+		columnType := ColumnType(bs.ReadUint8(data, offset+columnNameOffset))
 		offset += columnNameOffset + DATA_TYPE_SIZE
 
 		metaFile.Columns[i] = Column{

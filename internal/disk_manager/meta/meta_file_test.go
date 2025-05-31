@@ -1,9 +1,11 @@
-package disk_manager
+package meta
 
 import (
 	"fmt"
 	"os"
 	"testing"
+
+	bs "custom-database/internal/disk_manager/binary_serializer"
 )
 
 func TestCreateMetaFile(t *testing.T) {
@@ -23,7 +25,7 @@ func TestCreateMetaFile(t *testing.T) {
 		}
 
 		// Создаем файл
-		createMetaFile(metaFile)
+		CreateMetaFile(metaFile)
 
 		// Проверяем что файл создан
 		fileName := metaFile.Name + ".meta"
@@ -75,7 +77,7 @@ func TestCreateMetaFile(t *testing.T) {
 			Columns: []Column{},
 		}
 
-		createMetaFile(metaFile)
+		CreateMetaFile(metaFile)
 
 		fileName := metaFile.Name + ".meta"
 		data, err := os.ReadFile(fileName)
@@ -107,7 +109,7 @@ func TestCreateMetaFile(t *testing.T) {
 			},
 		}
 
-		createMetaFile(metaFile)
+		CreateMetaFile(metaFile)
 
 		fileName := metaFile.Name + ".meta"
 		data, err := os.ReadFile(fileName)
@@ -146,7 +148,7 @@ func TestCreateMetaFile(t *testing.T) {
 			},
 		}
 
-		createMetaFile(metaFile)
+		CreateMetaFile(metaFile)
 
 		fileName := metaFile.Name + ".meta"
 		data, err := os.ReadFile(fileName)
@@ -194,7 +196,7 @@ func TestNullableColumns(t *testing.T) {
 		// Проверяем bitmap в сериализованных данных
 		// Смещение bitmap после имени таблицы и количества колонок
 		offset := len(metaFile.Name) + 4 + 1 // длина имени + 4 байта длины + 1 байта кол-ва колонок
-		nullBitmap := readUint32(data, offset)
+		nullBitmap := bs.ReadUint32(data, offset)
 
 		// Проверяем, что нужные биты установлены
 		expectedNullable := []int{1, 2, 3, 6} // индексы nullable колонок

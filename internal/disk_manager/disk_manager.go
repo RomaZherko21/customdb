@@ -1,13 +1,14 @@
 package disk_manager
 
-func CreateTable(filename string) {
-	createMetaFile(&MetaFile{
-		Name: filename,
-		Columns: []Column{
-			{Name: "id", Type: TypeInt32},
-			{Name: "name", Type: TypeText},
-			{Name: "is_admin", Type: TypeBoolean},
-		},
+import (
+	"custom-database/internal/disk_manager/data"
+	"custom-database/internal/disk_manager/meta"
+)
+
+func CreateTable(filename string, columns []meta.Column) {
+	meta.CreateMetaFile(&meta.MetaFile{
+		Name:    filename,
+		Columns: columns,
 	})
-	createDataFile(filename)
+	data.CreateDataFile(filename)
 }

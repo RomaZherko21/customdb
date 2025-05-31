@@ -1,4 +1,4 @@
-package disk_manager
+package data
 
 type PageHeader struct {
 	PageId   int32

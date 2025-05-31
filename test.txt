@@ -22,3 +22,8 @@ curl -X POST http://localhost:8080/query \
 
 JSON.stringify([{id:"INT", name:"TEXT", isAdmin:"BOOLEAN"}, {id:10, name:"Roma", isAdmin:true}])
 '[{"id":"INT","name":"TEXT","isAdmin":"BOOLEAN"},{"id":10,"name":"Roma","isAdmin":true},{"id":20,"name":"Nice","isAdmin":false}]'
+
+
+
+
+xxd -b test.db | head -n 20 
