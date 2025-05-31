@@ -3,6 +3,14 @@ package disk_manager
 // Вспомогательные функции для работы с байтами
 // Little-endian порядок байтов
 
+func writeUint8(buffer []byte, offset int, value uint8) {
+	buffer[offset] = byte(value)
+}
+
+func readUint8(buffer []byte, offset int) uint8 {
+	return uint8(buffer[offset])
+}
+
 func writeInt32(buffer []byte, offset int, value int32) {
 	buffer[offset+3] = byte(value)
 	buffer[offset+2] = byte(value >> 8)

@@ -1,6 +1,6 @@
 package disk_manager
 
-type ColumnType int32
+type ColumnType uint8
 
 const (
 	TypeInt32 ColumnType = iota

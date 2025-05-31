@@ -14,8 +14,11 @@ func TestCreateMetaFile(t *testing.T) {
 			Columns: []Column{
 				{Name: "id", Type: TypeInt32, IsNullable: false},
 				{Name: "name", Type: TypeText, IsNullable: true},
-				{Name: "is_admin", Type: TypeBoolean, IsNullable: false},
 				{Name: "surname", Type: TypeText, IsNullable: true},
+				{Name: "age", Type: TypeUint32, IsNullable: true},
+				{Name: "height", Type: TypeUint64, IsNullable: true},
+				{Name: "residence", Type: TypeText, IsNullable: false},
+				{Name: "is_admin", Type: TypeBoolean, IsNullable: false},
 			},
 		}
 
@@ -180,6 +183,8 @@ func TestNullableColumns(t *testing.T) {
 				{Name: "email", Type: TypeText, IsNullable: true},
 				{Name: "age", Type: TypeInt32, IsNullable: true},
 				{Name: "is_admin", Type: TypeBoolean, IsNullable: false},
+				{Name: "is_premium", Type: TypeBoolean, IsNullable: false},
+				{Name: "is_deleted", Type: TypeBoolean, IsNullable: true},
 			},
 		}
 
@@ -188,11 +193,11 @@ func TestNullableColumns(t *testing.T) {
 
 		// Проверяем bitmap в сериализованных данных
 		// Смещение bitmap после имени таблицы и количества колонок
-		offset := len(metaFile.Name) + 4 + 4 // длина имени + 4 байта длины + 4 байта кол-ва колонок
+		offset := len(metaFile.Name) + 4 + 1 // длина имени + 4 байта длины + 1 байта кол-ва колонок
 		nullBitmap := readUint32(data, offset)
 
 		// Проверяем, что нужные биты установлены
-		expectedNullable := []int{1, 2, 3} // индексы nullable колонок
+		expectedNullable := []int{1, 2, 3, 6} // индексы nullable колонок
 		for i := 0; i < 8; i++ {
 			isNullable := false
 			for _, idx := range expectedNullable {
