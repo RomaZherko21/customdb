@@ -6,20 +6,22 @@ import (
 )
 
 const (
-	META_FILE_SIZE         = 4096 // 4KB
-	MAX_COLUMNS            = 32   // Максимальное количество колонок в таблице
-	MAX_COLUMN_NAME_LENGTH = 8    // Максимальная длина имени колонки
+	MAX_COLUMNS = 32 // Максимальное количество колонок в таблице
+
+	NULL_BITMAP_SIZE  = 4 // Размер null_bitmap в uint32
+	COLUMN_COUNT_SIZE = 1 // Размер количества колонок в uint8
+	DATA_TYPE_SIZE    = 1 // Размер типа данных в uint8
 )
 
 func calculateFileSize(metaFile *MetaFile) int {
 	columnSize := 0
 	for _, column := range metaFile.Columns {
-		columnSize += 4 + len(column.Name) + 1
+		columnSize += TEXT_TYPE_HEADER + len(column.Name) + DATA_TYPE_SIZE
 	}
 
-	return 4 + len(metaFile.Name) +
-		1 + // количество колонок
-		4 + // null_bitmap size
+	return TEXT_TYPE_HEADER + len(metaFile.Name) +
+		COLUMN_COUNT_SIZE + // количество колонок в uint8
+		NULL_BITMAP_SIZE + // null_bitmap size в uint32
 		columnSize
 }
 
@@ -48,7 +50,7 @@ func serializeMetaFile(metaFile *MetaFile) []byte {
 
 	// 2. Сериализуем количество колонок
 	writeUint8(buffer, offset, uint8(len(metaFile.Columns)))
-	offset += 1
+	offset += COLUMN_COUNT_SIZE
 
 	// 3. Сериализуем null nullBitmap
 	nullBitmap := uint32(0)
@@ -60,7 +62,7 @@ func serializeMetaFile(metaFile *MetaFile) []byte {
 		}
 	}
 	writeUint32(buffer, offset, nullBitmap)
-	offset += 4
+	offset += NULL_BITMAP_SIZE
 
 	// 4. Сериализуем каждую колонку
 	for _, column := range metaFile.Columns {
@@ -68,7 +70,7 @@ func serializeMetaFile(metaFile *MetaFile) []byte {
 		offset += writeString(buffer, offset, column.Name)
 		// [1 байт] тип данных (enum)
 		writeUint8(buffer, offset, uint8(column.Type))
-		offset += 1
+		offset += DATA_TYPE_SIZE
 	}
 	return buffer
 }
@@ -83,18 +85,18 @@ func deserializeMetaFile(data []byte) *MetaFile {
 	// 2. Читаем количество колонок
 	columnsCount := readUint8(data, offset)
 	metaFile.Columns = make([]Column, columnsCount)
-	offset += 1
+	offset += COLUMN_COUNT_SIZE
 
 	// 3. Читаем bitmap для nullable колонок
 	nullBitmap := readUint32(data, offset)
-	offset += 4
+	offset += NULL_BITMAP_SIZE
 
 	// 4. Читаем информацию о колонках
 	for i := 0; i < len(metaFile.Columns); i++ {
 		columnName, columnNameOffset := readString(data, offset)
 
 		columnType := ColumnType(readUint8(data, offset+columnNameOffset))
-		offset += columnNameOffset + 1
+		offset += columnNameOffset + DATA_TYPE_SIZE
 
 		metaFile.Columns[i] = Column{
 			Name:       columnName,

@@ -97,6 +97,10 @@ func readBool(buffer []byte, offset int) bool {
 	return buffer[offset] != 0
 }
 
+const (
+	TEXT_TYPE_HEADER = 4 // Размер длины строки в int32
+)
+
 // Записывает строку в буфер
 // Формат: [длина строки (4 байта)][данные строки]
 // Возвращает количество записанных байт
@@ -106,10 +110,10 @@ func writeString(buffer []byte, offset int, value string) int {
 	writeInt32(buffer, offset, strLen)
 
 	// Записываем сами данные
-	copy(buffer[offset+4:], []byte(value))
+	copy(buffer[TEXT_TYPE_HEADER+offset:], []byte(value))
 
 	// Возвращаем общее количество записанных байт
-	return 4 + int(strLen)
+	return TEXT_TYPE_HEADER + int(strLen)
 }
 
 // Читает строку из буфера
@@ -119,8 +123,8 @@ func readString(buffer []byte, offset int) (string, int) {
 	strLen := readInt32(buffer, offset)
 
 	// Читаем данные строки
-	data := buffer[offset+4 : offset+4+int(strLen)]
+	data := buffer[TEXT_TYPE_HEADER+offset : TEXT_TYPE_HEADER+offset+int(strLen)]
 
 	// Возвращаем строку и общее количество прочитанных байт
-	return string(data), 4 + int(strLen)
+	return string(data), TEXT_TYPE_HEADER + int(strLen)
 }
