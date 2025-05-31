@@ -34,6 +34,8 @@ func TestParseSelectStatement(t *testing.T) {
 			{Kind: lex.IdentifierToken, Value: "name"},
 			{Kind: lex.SymbolToken, Value: ","},
 			{Kind: lex.IdentifierToken, Value: "is_active"},
+			{Kind: lex.SymbolToken, Value: ","},
+			{Kind: lex.IdentifierToken, Value: "registered_at"},
 			{Kind: lex.KeywordToken, Value: "from"},
 			{Kind: lex.IdentifierToken, Value: "users"},
 			{Kind: lex.SymbolToken, Value: ";"},
@@ -42,11 +44,12 @@ func TestParseSelectStatement(t *testing.T) {
 		result, cursor, ok := parseSelectStatement(tokens, 0)
 
 		require.True(t, ok)
-		require.Equal(t, uint(8), cursor)
-		require.Len(t, result.SelectedColumns, 3)
+		require.Equal(t, uint(10), cursor)
+		require.Len(t, result.SelectedColumns, 4)
 		require.Equal(t, "id", result.SelectedColumns[0].Literal.Value)
 		require.Equal(t, "name", result.SelectedColumns[1].Literal.Value)
 		require.Equal(t, "is_active", result.SelectedColumns[2].Literal.Value)
+		require.Equal(t, "registered_at", result.SelectedColumns[3].Literal.Value)
 		require.Equal(t, "users", result.From.Value)
 	})
 

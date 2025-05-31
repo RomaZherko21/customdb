@@ -113,6 +113,14 @@ func (mb *memoryBackend) convertRowsToCells(rows [][]interface{}, columns []mode
 				}
 			}
 
+			if column.Type == models.TimestampType {
+				if cell == nil {
+					memoryCell = MemoryCell("null")
+				} else {
+					memoryCell = MemoryCell(cell.(string))
+				}
+			}
+
 			newRow = append(newRow, memoryCell)
 		}
 		convertedRows = append(convertedRows, newRow)

@@ -1,10 +1,10 @@
-CREATE TABLE users (id INT, name TEXT, is_admin BOOLEAN);
+CREATE TABLE users (id INT, name TEXT, is_admin BOOLEAN, registered_at TIMESTAMP);
 
-INSERT INTO users VALUES (1, 'Corey', true);
-INSERT INTO users VALUES (2, 'Moris', false);
-INSERT INTO users VALUES (1, null, true);
+INSERT INTO users VALUES (1, 'Corey', true, '2024-03-20 15:30:45');
+INSERT INTO users VALUES (2, 'Moris', false, '2023-05-01 13:30:45');
+INSERT INTO users VALUES (3, null, true, null);
 
-SELECT id, name, is_admin FROM users;
+SELECT id, name, is_admin, registered_at  FROM users;
 
 SELECT name FROM users;
 SELECT id FROM users;

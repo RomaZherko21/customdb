@@ -23,7 +23,7 @@ func (l *lex) Lex(source string) ([]*Token, error) {
 
 lex:
 	for cur.Pointer < uint(len(source)) {
-		lexers := []lexer{lexKeyword, lexSymbol, lexNull, lexMathOperator, lexBoolean, lexLogicalOperator, lexString, lexNumeric, lexIdentifier}
+		lexers := []lexer{lexKeyword, lexSymbol, lexNull, lexMathOperator, lexBoolean, lexLogicalOperator, lexDate, lexString, lexNumeric, lexIdentifier}
 		for _, lexFunc := range lexers {
 			if token, newCursor, ok := lexFunc(source, cur); ok {
 				cur = newCursor

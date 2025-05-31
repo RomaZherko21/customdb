@@ -7,6 +7,7 @@ const (
 	SymbolToken
 	IdentifierToken
 	StringToken
+	DateToken
 	NumericToken
 	BooleanToken
 	NullToken

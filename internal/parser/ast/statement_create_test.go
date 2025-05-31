@@ -22,6 +22,9 @@ func TestParseCreateTableStatement(t *testing.T) {
 			{Kind: lex.SymbolToken, Value: ","},
 			{Kind: lex.IdentifierToken, Value: "is_active"},
 			{Kind: lex.KeywordToken, Value: "boolean"},
+			{Kind: lex.SymbolToken, Value: ","},
+			{Kind: lex.IdentifierToken, Value: "registered_at"},
+			{Kind: lex.KeywordToken, Value: "timestamp"},
 			{Kind: lex.SymbolToken, Value: ")"},
 			{Kind: lex.SymbolToken, Value: ";"},
 		}
@@ -29,15 +32,17 @@ func TestParseCreateTableStatement(t *testing.T) {
 		result, cursor, ok := parseCreateTableStatement(tokens, 0)
 
 		require.True(t, ok)
-		require.Equal(t, uint(13), cursor)
+		require.Equal(t, uint(16), cursor)
 		require.Equal(t, "users", result.Name.Value)
-		require.Len(t, *result.Cols, 3)
+		require.Len(t, *result.Cols, 4)
 		require.Equal(t, "id", (*result.Cols)[0].Name.Value)
 		require.Equal(t, "int", (*result.Cols)[0].Datatype.Value)
 		require.Equal(t, "name", (*result.Cols)[1].Name.Value)
 		require.Equal(t, "text", (*result.Cols)[1].Datatype.Value)
 		require.Equal(t, "is_active", (*result.Cols)[2].Name.Value)
 		require.Equal(t, "boolean", (*result.Cols)[2].Datatype.Value)
+		require.Equal(t, "registered_at", (*result.Cols)[3].Name.Value)
+		require.Equal(t, "timestamp", (*result.Cols)[3].Datatype.Value)
 	})
 
 	t.Run("invalid CREATE statement - missing TABLE keyword", func(t *testing.T) {

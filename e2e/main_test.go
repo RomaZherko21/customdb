@@ -91,15 +91,15 @@ func executeQuery(t *testing.T, query string) *QueryResponse {
 
 func TestCreateAndQueryTable(t *testing.T) {
 	t.Run("Create Table", func(t *testing.T) {
-		query := "CREATE TABLE test_table (id INT, name TEXT, is_admin BOOLEAN);"
+		query := "CREATE TABLE test_table (id INT, name TEXT, is_admin BOOLEAN, registered_at TIMESTAMP);"
 		response := executeQuery(t, query)
 		assert.Empty(t, response.Error)
 	})
 
 	t.Run("Insert Data", func(t *testing.T) {
 		queries := []string{
-			"INSERT INTO test_table VALUES (1, 'Rick', true);",
-			"INSERT INTO test_table VALUES (2, 'Morty', false);",
+			"INSERT INTO test_table VALUES (1, 'Rick', true, '2024-03-20 15:30:45');",
+			"INSERT INTO test_table VALUES (2, 'Morty', false, '2023-05-01 13:30:45');",
 		}
 
 		for _, query := range queries {
@@ -109,11 +109,11 @@ func TestCreateAndQueryTable(t *testing.T) {
 	})
 
 	t.Run("Select Data", func(t *testing.T) {
-		query := "SELECT id, name, is_admin FROM test_table;"
+		query := "SELECT id, name, is_admin, registered_at FROM test_table;"
 		response := executeQuery(t, query)
 		assert.Empty(t, response.Error)
 
-		want := `{"name":"test_table","columns":[{"name":"id","type":1},{"name":"name","type":0},{"name":"is_admin","type":2}],"rows":[[1,"Rick",true],[2,"Morty",false]]}`
+		want := `{"name":"test_table","columns":[{"name":"id","type":1},{"name":"name","type":0},{"name":"is_admin","type":2},{"name":"registered_at","type":3}],"rows":[[1,"Rick",true,"2024-03-20 15:30:45"],[2,"Morty",false,"2023-05-01 13:30:45"]]}`
 
 		assert.Equal(t, want, response.Result)
 	})
@@ -133,7 +133,7 @@ func TestCreateAndQueryTable(t *testing.T) {
 		response := executeQuery(t, query)
 		assert.Empty(t, response.Error)
 
-		want := `{"name":"test_table","columns":[{"name":"id","type":1},{"name":"name","type":0},{"name":"is_admin","type":2}],"rows":[[1,"Rick",true],[2,"Morty",false]]}`
+		want := `{"name":"test_table","columns":[{"name":"id","type":1},{"name":"name","type":0},{"name":"is_admin","type":2},{"name":"registered_at","type":3}],"rows":[[1,"Rick",true,"2024-03-20 15:30:45"],[2,"Morty",false,"2023-05-01 13:30:45"]]}`
 
 		assert.Equal(t, want, response.Result)
 	})

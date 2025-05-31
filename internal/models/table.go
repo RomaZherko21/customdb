@@ -11,6 +11,7 @@ const (
 	TextType ColumnType = iota
 	IntType
 	BoolType
+	TimestampType
 )
 
 type Cell interface {

@@ -124,6 +124,12 @@ func printTable(results *models.Table) error {
 					b := cell.AsBoolean()
 					r = fmt.Sprintf("%t", b)
 				}
+			case models.TimestampType:
+				if cell.IsNull() {
+					r = "null"
+				} else {
+					r = cell.AsText()
+				}
 			}
 
 			row = append(row, r)
@@ -163,6 +169,8 @@ func debugTable(results *models.Table) {
 			typeString = "text"
 		case models.BoolType:
 			typeString = "boolean"
+		case models.TimestampType:
+			typeString = "timestamp"
 		}
 		nullable := ""
 		rows = append(rows, []string{c.Name, typeString, nullable})

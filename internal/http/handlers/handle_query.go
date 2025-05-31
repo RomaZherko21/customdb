@@ -112,6 +112,8 @@ func convertToJson(table *models.Table) (string, error) {
 				}
 			case models.BoolType:
 				s = cell.AsBoolean()
+			case models.TimestampType:
+				s = cell.AsText()
 			}
 
 			jsonRow = append(jsonRow, s)

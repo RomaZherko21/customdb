@@ -24,6 +24,8 @@ func TestParseInsertStatement(t *testing.T) {
 			{Kind: lex.BooleanToken, Value: "false"},
 			{Kind: lex.SymbolToken, Value: ","},
 			{Kind: lex.NullToken, Value: "null"},
+			{Kind: lex.SymbolToken, Value: ","},
+			{Kind: lex.DateToken, Value: "2024-03-20 15:30:45"},
 			{Kind: lex.SymbolToken, Value: ")"},
 			{Kind: lex.SymbolToken, Value: ";"},
 		}
@@ -31,14 +33,15 @@ func TestParseInsertStatement(t *testing.T) {
 		result, cursor, ok := parseInsertStatement(tokens, 0)
 
 		require.True(t, ok)
-		require.Equal(t, uint(15), cursor)
+		require.Equal(t, uint(17), cursor)
 		require.Equal(t, "users", result.Table.Value)
-		require.Len(t, *result.Values, 5)
+		require.Len(t, *result.Values, 6)
 		require.Equal(t, "1", (*result.Values)[0].Literal.Value)
 		require.Equal(t, "John", (*result.Values)[1].Literal.Value)
 		require.Equal(t, "true", (*result.Values)[2].Literal.Value)
 		require.Equal(t, "false", (*result.Values)[3].Literal.Value)
 		require.Equal(t, "null", (*result.Values)[4].Literal.Value)
+		require.Equal(t, "2024-03-20 15:30:45", (*result.Values)[5].Literal.Value)
 	})
 
 	t.Run("invalid INSERT statement - missing INTO keyword", func(t *testing.T) {

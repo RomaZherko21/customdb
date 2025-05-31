@@ -18,26 +18,31 @@ const (
 	LimitKeyword  Keyword = "limit"
 	OffsetKeyword Keyword = "offset"
 	// Datatypes
-	IntKeyword         Keyword = "int"
-	TextKeyword        Keyword = "text"
-	BooleanTypeKeyword Keyword = "boolean"
+	IntKeyword           Keyword = "int"
+	TextKeyword          Keyword = "text"
+	BooleanTypeKeyword   Keyword = "boolean"
+	TimestampTypeKeyword Keyword = "timestamp"
 )
 
 var keywords = []Keyword{
+	// Statements
 	SelectKeyword,
 	InsertKeyword,
+	CreateKeyword,
+	DropKeyword,
+	// Keywords
 	ValuesKeyword,
 	TableKeyword,
-	CreateKeyword,
 	FromKeyword,
 	IntoKeyword,
-	IntKeyword,
-	TextKeyword,
-	DropKeyword,
 	WhereKeyword,
-	BooleanTypeKeyword,
 	LimitKeyword,
 	OffsetKeyword,
+	// Datatypes
+	IntKeyword,
+	TextKeyword,
+	BooleanTypeKeyword,
+	TimestampTypeKeyword,
 }
 
 type Symbol string

@@ -23,6 +23,8 @@ func (mb *memoryBackend) createTable(statement *ast.CreateTableStatement) error 
 			dt = models.TextType
 		case string(lex.BooleanTypeKeyword):
 			dt = models.BoolType
+		case string(lex.TimestampTypeKeyword):
+			dt = models.TimestampType
 		default:
 			return fmt.Errorf("Invalid datatype: %s", col.Datatype.Value)
 		}

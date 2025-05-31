@@ -61,6 +61,14 @@ func (mb *memoryBackend) insertIntoTable(statement *ast.InsertStatement) error {
 				interfaceCells[i] = cell.AsBoolean()
 			}
 		}
+
+		if column.Type == models.TimestampType {
+			if cell.IsNull() {
+				interfaceCells[i] = nil
+			} else {
+				interfaceCells[i] = cell.AsText()
+			}
+		}
 	}
 
 	err = mb.persistentStorage.Insert(statement.Table.Value, interfaceCells)
@@ -101,6 +109,10 @@ func (mb *memoryBackend) tokenToCell(t *lex.Token) MemoryCell {
 	}
 
 	if t.Kind == lex.NullToken {
+		return MemoryCell(t.Value)
+	}
+
+	if t.Kind == lex.DateToken {
 		return MemoryCell(t.Value)
 	}
 

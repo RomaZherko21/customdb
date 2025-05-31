@@ -8,7 +8,7 @@ import (
 
 func TestLex(t *testing.T) {
 	t.Run("CREATE TABLE command", func(t *testing.T) {
-		input := "CREATE TABLE users (id INT, name TEXT, is_active BOOLEAN);"
+		input := "CREATE TABLE users (id INT, name TEXT, is_active BOOLEAN, registered_at TIMESTAMP);"
 		want := []*Token{
 			{Kind: KeywordToken, Value: "create"},
 			{Kind: KeywordToken, Value: "table"},
@@ -22,6 +22,9 @@ func TestLex(t *testing.T) {
 			{Kind: SymbolToken, Value: ","},
 			{Kind: IdentifierToken, Value: "is_active"},
 			{Kind: KeywordToken, Value: "boolean"},
+			{Kind: SymbolToken, Value: ","},
+			{Kind: IdentifierToken, Value: "registered_at"},
+			{Kind: KeywordToken, Value: "timestamp"},
 			{Kind: SymbolToken, Value: ")"},
 			{Kind: SymbolToken, Value: ";"},
 		}
@@ -39,7 +42,7 @@ func TestLex(t *testing.T) {
 	})
 
 	t.Run("INSERT INTO command", func(t *testing.T) {
-		input := "INSERT INTO users (id, name, is_active) VALUES (1, 'Phil', true);"
+		input := "INSERT INTO users (id, name, is_active, registered_at) VALUES (1, 'Phil', true, '2024-03-20 15:30:45');"
 		want := []*Token{
 			{Kind: KeywordToken, Value: "insert"},
 			{Kind: KeywordToken, Value: "into"},
@@ -50,6 +53,8 @@ func TestLex(t *testing.T) {
 			{Kind: IdentifierToken, Value: "name"},
 			{Kind: SymbolToken, Value: ","},
 			{Kind: IdentifierToken, Value: "is_active"},
+			{Kind: SymbolToken, Value: ","},
+			{Kind: IdentifierToken, Value: "registered_at"},
 			{Kind: SymbolToken, Value: ")"},
 			{Kind: KeywordToken, Value: "values"},
 			{Kind: SymbolToken, Value: "("},
@@ -58,6 +63,8 @@ func TestLex(t *testing.T) {
 			{Kind: StringToken, Value: "Phil"},
 			{Kind: SymbolToken, Value: ","},
 			{Kind: BooleanToken, Value: "true"},
+			{Kind: SymbolToken, Value: ","},
+			{Kind: DateToken, Value: "2024-03-20 15:30:45"},
 			{Kind: SymbolToken, Value: ")"},
 			{Kind: SymbolToken, Value: ";"},
 		}

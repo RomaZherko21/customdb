@@ -50,7 +50,7 @@ outer:
 func parseExpression(tokens []*lex.Token, initialCursor uint, _ lex.Token) (*Expression, uint, bool) {
 	cursor := initialCursor
 
-	kinds := []lex.TokenKind{lex.IdentifierToken, lex.NumericToken, lex.StringToken, lex.BooleanToken, lex.NullToken}
+	kinds := []lex.TokenKind{lex.DateToken, lex.IdentifierToken, lex.NumericToken, lex.StringToken, lex.BooleanToken, lex.NullToken}
 	for _, kind := range kinds {
 		t, newCursor, ok := parseToken(tokens, cursor, kind)
 		if ok {
