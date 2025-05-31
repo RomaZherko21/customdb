@@ -193,9 +193,7 @@ func TestNullableColumns(t *testing.T) {
 		// Сериализуем
 		data := serializeMetaFile(metaFile)
 
-		// Проверяем bitmap в сериализованных данных
-		// Смещение bitmap после имени таблицы и количества колонок
-		offset := len(metaFile.Name) + 4 + 1 // длина имени + 4 байта длины + 1 байта кол-ва колонок
+		offset := bs.TEXT_TYPE_HEADER + len(metaFile.Name) + COLUMN_COUNT_SIZE
 		nullBitmap := bs.ReadUint32(data, offset)
 
 		// Проверяем, что нужные биты установлены

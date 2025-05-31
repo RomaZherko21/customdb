@@ -2,6 +2,25 @@ package binary_serializer
 
 // Вспомогательные функции для работы с байтами
 // Little-endian порядок байтов
+type service interface {
+	WriteUint8(buffer []byte, offset int, value uint8)
+	ReadUint8(buffer []byte, offset int) uint8
+	WriteUint32(buffer []byte, offset int, value uint32)
+	ReadUint32(buffer []byte, offset int) uint32
+	WriteUint64(buffer []byte, offset int, value uint64)
+	ReadUint64(buffer []byte, offset int) uint64
+
+	WriteInt32(buffer []byte, offset int, value int32)
+	ReadInt32(buffer []byte, offset int) int32
+	WriteInt64(buffer []byte, offset int, value int64)
+	ReadInt64(buffer []byte, offset int) int64
+
+	WriteBool(buffer []byte, offset int, value bool)
+	ReadBool(buffer []byte, offset int) bool
+
+	WriteString(buffer []byte, offset int, value string) int
+	ReadString(buffer []byte, offset int) (string, int)
+}
 
 func WriteUint8(buffer []byte, offset int, value uint8) {
 	buffer[offset] = byte(value)
