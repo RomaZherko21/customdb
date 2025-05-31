@@ -14,7 +14,7 @@ func TestCreateFile(t *testing.T) {
 	}{
 		{
 			name:     "Create file successfully",
-			filename: "test.db",
+			filename: "test",
 			wantErr:  false,
 		},
 	}
@@ -29,7 +29,7 @@ func TestCreateFile(t *testing.T) {
 			}()
 
 			// Вызываем тестируемую функцию
-			createFile(tt.filename)
+			CreateTable(tt.filename)
 
 			// Проверяем, что файл создан
 			if !tt.wantErr {
@@ -93,8 +93,8 @@ func TestCreateFileInExistingDirectory(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	// Создаем файл в существующей директории
-	filename := filepath.Join(tmpDir, "test.db")
-	createFile(filename)
+	filename := filepath.Join(tmpDir, "test")
+	CreateTable(filename)
 
 	// Проверяем, что файл создан
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
@@ -103,10 +103,10 @@ func TestCreateFileInExistingDirectory(t *testing.T) {
 }
 
 func TestCreateFileOverwrite(t *testing.T) {
-	filename := "test_overwrite.db"
+	filename := "test_overwrite"
 
 	// Создаем файл первый раз
-	createFile(filename)
+	CreateTable(filename)
 	defer os.Remove(filename)
 
 	// Получаем информацию о первом файле
@@ -116,7 +116,7 @@ func TestCreateFileOverwrite(t *testing.T) {
 	}
 
 	// Создаем файл второй раз (перезапись)
-	createFile(filename)
+	CreateTable(filename)
 
 	// Получаем информацию о втором файле
 	secondFileInfo, err := os.Stat(filename)
