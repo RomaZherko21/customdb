@@ -1,11 +1,14 @@
 package disk_manager
 
-type ColumnType int
+type ColumnType int32
 
 const (
-	ColumnTypeInt ColumnType = iota
-	ColumnTypeString
-	ColumnTypeBoolean
+	TypeInt32 ColumnType = iota
+	TypeInt64
+	TypeUint32
+	TypeUint64
+	TypeBoolean
+	TypeText
 )
 
 type Column struct {
