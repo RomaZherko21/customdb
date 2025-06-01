@@ -1,6 +1,7 @@
 package data
 
 import (
+	"custom-database/internal/disk_manager/meta"
 	"os"
 	"path/filepath"
 	"testing"
@@ -16,7 +17,7 @@ func TestCreateDataFile(t *testing.T) {
 		filename := "test_table"
 
 		// Действие
-		fc, err := NewFileConnection(true, filename, tempDir)
+		fc, err := NewFileConnection(true, filename, tempDir, []meta.Column{})
 		if err != nil {
 			t.Fatalf("Не удалось создать файл: %v", err)
 		}
@@ -81,7 +82,7 @@ func TestCreateDataFile(t *testing.T) {
 		filename := "zero_page"
 
 		// Действие
-		fc, err := NewFileConnection(true, filename, tempDir)
+		fc, err := NewFileConnection(true, filename, tempDir, []meta.Column{})
 		if err != nil {
 			t.Fatalf("Не удалось создать файл: %v", err)
 		}

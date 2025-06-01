@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	bs "custom-database/internal/disk_manager/binary_serializer"
+	helpers "custom-database/internal/disk_manager/helpers"
 )
 
 func CreateMetaFile(metaFile *MetaFile, filePath string) error {
@@ -45,9 +46,9 @@ func serializeMetaFile(metaFile *MetaFile) []byte {
 	nullBitmap := uint32(0)
 	for i := 0; i < len(metaFile.Columns); i++ {
 		if metaFile.Columns[i].IsNullable {
-			nullBitmap = setBit(nullBitmap, i)
+			nullBitmap = helpers.SetBit(nullBitmap, i)
 		} else {
-			nullBitmap = clearBit(nullBitmap, i)
+			nullBitmap = helpers.ClearBit(nullBitmap, i)
 		}
 	}
 	bs.WriteUint32(buffer, offset, nullBitmap)
@@ -90,7 +91,7 @@ func deserializeMetaFile(data []byte) *MetaFile {
 		metaFile.Columns[i] = Column{
 			Name:       columnName,
 			Type:       columnType,
-			IsNullable: getBit(nullBitmap, i),
+			IsNullable: helpers.GetBit(nullBitmap, i),
 		}
 	}
 

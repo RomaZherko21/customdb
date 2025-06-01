@@ -16,18 +16,6 @@ func calculateFileSize(metaFile *MetaFile) int {
 		columnSize
 }
 
-func setBit(bitmap uint32, position int) uint32 {
-	return bitmap | (1 << position)
-}
-
-func clearBit(bitmap uint32, position int) uint32 {
-	return bitmap &^ (1 << position)
-}
-
-func getBit(bitmap uint32, position int) bool {
-	return (bitmap & (1 << position)) != 0
-}
-
 func calculateColumnSize(columnType ColumnType) int {
 	switch columnType {
 	case TypeInt32:
@@ -64,4 +52,34 @@ func ConvertValueToType(data []byte, offset int, columnType ColumnType) (interfa
 	}
 
 	panic("ConvertValueToType(): unknown column type")
+}
+
+func ConvertValueToBuffer(offset int, columnType ColumnType, value interface{}) []byte {
+	buffer1 := make([]byte, 1)
+	buffer4 := make([]byte, 4)
+	buffer8 := make([]byte, 8)
+
+	switch columnType {
+	case TypeInt32:
+		bs.WriteInt32(buffer4, offset, value.(int32))
+		return buffer4
+	case TypeInt64:
+		bs.WriteInt64(buffer8, offset, value.(int64))
+		return buffer8
+	case TypeUint32:
+		bs.WriteUint32(buffer4, offset, value.(uint32))
+		return buffer4
+	case TypeUint64:
+		bs.WriteUint64(buffer8, offset, value.(uint64))
+		return buffer8
+	case TypeBoolean:
+		bs.WriteBool(buffer1, offset, value.(bool))
+		return buffer1
+	case TypeText:
+		buffer := make([]byte, bs.TEXT_TYPE_HEADER+len(value.(string)))
+		bs.WriteString(buffer, offset, value.(string))
+		return buffer
+	}
+
+	panic("ConvertValueToBuffer(): unknown column type")
 }

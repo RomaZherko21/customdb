@@ -44,7 +44,7 @@ func (dm *diskManager) CreateTable(tableName string, columns []meta.Column) erro
 		return fmt.Errorf("CreateTable(): meta.CreateMetaFile: %w", err)
 	}
 
-	fc, err := data.NewFileConnection(true, tableName, filePath)
+	fc, err := data.NewFileConnection(true, tableName, filePath, columns)
 	if err != nil {
 		return fmt.Errorf("CreateTable(): data.NewFileConnection: %w", err)
 	}

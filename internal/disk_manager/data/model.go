@@ -17,7 +17,7 @@ type PageSlot struct {
 type Page struct {
 	Header PageHeader
 	Slots  []PageSlot
-	Data   []byte
+	Data   []DataRow
 }
 
 type DataCell struct {
@@ -30,8 +30,4 @@ type DataRow struct {
 	PageId uint32
 	SlotId uint16
 	Row    []DataCell
-}
-
-type DataRows struct {
-	Rows []DataRow
 }

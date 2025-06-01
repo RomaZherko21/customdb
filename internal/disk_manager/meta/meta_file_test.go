@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	bs "custom-database/internal/disk_manager/binary_serializer"
+	"custom-database/internal/disk_manager/helpers"
 )
 
 func TestCreateMetaFile(t *testing.T) {
@@ -218,9 +219,9 @@ func TestNullableColumns(t *testing.T) {
 					break
 				}
 			}
-			if getBit(nullBitmap, i) != isNullable {
+			if helpers.GetBit(nullBitmap, i) != isNullable {
 				t.Errorf("Column %d nullable status: got %v, want %v",
-					i, getBit(nullBitmap, i), isNullable)
+					i, helpers.GetBit(nullBitmap, i), isNullable)
 			}
 		}
 

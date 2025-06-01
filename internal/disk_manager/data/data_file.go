@@ -1,6 +1,7 @@
 package data
 
 import (
+	"custom-database/internal/disk_manager/meta"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,11 +10,12 @@ import (
 type fileConnection struct {
 	lastPageID uint32
 	file       *os.File
+	columns    []meta.Column
 }
 
 const INITIAL_PAGE_ID = 1
 
-func NewFileConnection(isNewFile bool, filename string, filePath string) (*fileConnection, error) {
+func NewFileConnection(isNewFile bool, filename string, filePath string, columns []meta.Column) (*fileConnection, error) {
 	filePath = filepath.Join(filePath, filename+".data")
 
 	if isNewFile {
@@ -35,6 +37,7 @@ func NewFileConnection(isNewFile bool, filename string, filePath string) (*fileC
 	return &fileConnection{
 		lastPageID: INITIAL_PAGE_ID,
 		file:       file,
+		columns:    columns,
 	}, nil
 }
 
@@ -75,6 +78,6 @@ func (fc *fileConnection) newPage(pageID uint32) *Page {
 			PageSize: PAGE_SIZE,
 		},
 		Slots: make([]PageSlot, MAX_SLOTS),
-		Data:  make([]byte, DATA_SIZE),
+		Data:  make([]DataRow, 0),
 	}
 }
