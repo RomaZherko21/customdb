@@ -4,52 +4,71 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
-	bs "custom-database/internal/disk_manager/binary_serializer"
 )
 
-const (
-	PAGE_SIZE = 4096 // 4KB
+type fileConnection struct {
+	lastPageID uint32
+	file       *os.File
+}
 
-	MAX_SLOTS = 32 // Max slots on page
+const INITIAL_PAGE_ID = 1
 
-	PAGE_ID_SIZE     = 4
-	PAGE_SIZE_SIZE   = 2
-	PAGE_HEADER_SIZE = PAGE_ID_SIZE + PAGE_SIZE_SIZE + 2 // 2 bytes for padding
+func NewFileConnection(isNewFile bool, filename string, filePath string) (*fileConnection, error) {
+	filePath = filepath.Join(filePath, filename+".data")
 
-	SLOT_ROW_ID_SIZE     = 2
-	SLOT_OFFSET_SIZE     = 2
-	SLOT_SIZE_SIZE       = 2
-	SLOT_IS_DELETED_SIZE = 1
-	ONE_SLOT_SIZE        = SLOT_ROW_ID_SIZE + SLOT_OFFSET_SIZE + SLOT_SIZE_SIZE + SLOT_IS_DELETED_SIZE + 1
+	if isNewFile {
+		fc := &fileConnection{
+			lastPageID: INITIAL_PAGE_ID,
+		}
 
-	SLOTS_SPACE = ONE_SLOT_SIZE * MAX_SLOTS                  // 8 * 32 = 256 bytes
-	DATA_SIZE   = PAGE_SIZE - PAGE_HEADER_SIZE - SLOTS_SPACE // 4096 - 8 - 256 = 3808 bytes
-)
-
-func CreateDataFile(pageID uint32, filename string, filePath string) error {
-	if _, err := os.Stat(filepath.Join(filePath, filename+".data")); err == nil {
-		return fmt.Errorf("CreateDataFile(): table already exists: %w", err)
+		if err := fc.createDataFile(filePath); err != nil {
+			return nil, fmt.Errorf("NewFileConnection(): CreateDataFile: %w", err)
+		}
+		return fc, nil
 	}
 
-	file, err := os.Create(filepath.Join(filePath, filename+".data"))
+	file, err := os.Open(filePath)
 	if err != nil {
-		return fmt.Errorf("CreateDataFile(): os.Create: %w", err)
+		return nil, fmt.Errorf("NewFileConnection(): os.Open: %w", err)
 	}
-	defer file.Close()
 
-	page := newPage(pageID)
-	data := serializePage(page)
+	return &fileConnection{
+		lastPageID: INITIAL_PAGE_ID,
+		file:       file,
+	}, nil
+}
+
+func (fc *fileConnection) Close() error {
+	if fc.file == nil {
+		return nil
+	}
+
+	return fc.file.Close()
+}
+
+func (fc *fileConnection) createDataFile(filePath string) error {
+	if _, err := os.Stat(filePath); err == nil {
+		return fmt.Errorf("createDataFile(): table already exists: %w", err)
+	}
+
+	file, err := os.Create(filePath)
+	if err != nil {
+		return fmt.Errorf("createDataFile(): os.Create: %w", err)
+	}
+	fc.file = file
+
+	page := fc.newPage(INITIAL_PAGE_ID)
+	data := fc.serializePage(page)
 
 	_, err = file.Write(data)
 	if err != nil {
-		return fmt.Errorf("CreateDataFile(): file.Write: %w", err)
+		return fmt.Errorf("createDataFile(): file.Write: %w", err)
 	}
 
 	return nil
 }
 
-func newPage(pageID uint32) *Page {
+func (fc *fileConnection) newPage(pageID uint32) *Page {
 	return &Page{
 		Header: PageHeader{
 			PageId:   pageID,
@@ -58,66 +77,4 @@ func newPage(pageID uint32) *Page {
 		Slots: make([]PageSlot, MAX_SLOTS),
 		Data:  make([]byte, DATA_SIZE),
 	}
-}
-
-// serializePage преобразует Page в []byte для записи на диск
-func serializePage(page *Page) []byte {
-	// Выделяем буфер для всей страницы
-	buffer := make([]byte, PAGE_SIZE)
-
-	// 1. Сериализуем заголовок (первые PAGE_HEADER_SIZE байт)
-	bs.WriteUint32(buffer, 0, page.Header.PageId)
-	bs.WriteUint16(buffer, 4, page.Header.PageSize)
-
-	// 2. Сериализуем слоты (следующие SLOTS_SPACE байт)
-	slotsOffset := PAGE_HEADER_SIZE
-	for i, slot := range page.Slots {
-		offset := slotsOffset + (i * ONE_SLOT_SIZE)
-		bs.WriteUint16(buffer, offset, slot.RowId)
-		bs.WriteUint16(buffer, offset+4, slot.Offset)
-		bs.WriteUint16(buffer, offset+8, slot.Size)
-		bs.WriteBool(buffer, offset+12, slot.IsDeleted)
-	}
-
-	// 3. Копируем данные (оставшиеся DATA_SIZE байт)
-	dataOffset := PAGE_HEADER_SIZE + SLOTS_SPACE
-	copy(buffer[dataOffset:], page.Data)
-
-	return buffer
-}
-
-// DeserializePage восстанавливает Page из []byte прочитанных с диска
-func DeserializePage(data []byte) *Page {
-	page := &Page{
-		Header: PageHeader{},
-		Slots:  make([]PageSlot, MAX_SLOTS),
-		Data:   make([]byte, DATA_SIZE),
-	}
-
-	// 1. Десериализуем заголовок
-	page.Header.PageId = bs.ReadUint32(data, 0)
-	page.Header.PageSize = bs.ReadUint16(data, 4)
-
-	// 2. Десериализуем слоты
-	slotsOffset := PAGE_HEADER_SIZE
-	for i := 0; i < MAX_SLOTS; i++ {
-		offset := slotsOffset + (i * ONE_SLOT_SIZE)
-		rowID := bs.ReadUint16(data, offset)
-		// Если rowID != 0, значит слот содержит данные
-		if rowID != 0 {
-			slot := &PageSlot{
-				RowId:     rowID,
-				Offset:    bs.ReadUint16(data, offset+4),
-				Size:      bs.ReadUint16(data, offset+8),
-				IsDeleted: bs.ReadBool(data, offset+12),
-			}
-			page.Slots[i] = *slot
-		}
-	}
-
-	// 3. Копируем данные
-	dataOffset := PAGE_HEADER_SIZE + SLOTS_SPACE
-	copy(page.Data, data[dataOffset:dataOffset+DATA_SIZE])
-
-	return page
 }

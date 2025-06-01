@@ -8,14 +8,6 @@ import (
 	bs "custom-database/internal/disk_manager/binary_serializer"
 )
 
-const (
-	MAX_COLUMNS = 32 // Максимальное количество колонок в таблице
-
-	NULL_BITMAP_SIZE  = 4 // Размер null_bitmap в uint32
-	COLUMN_COUNT_SIZE = 1 // Размер количества колонок в uint8
-	DATA_TYPE_SIZE    = 1 // Размер типа данных в uint8
-)
-
 func CreateMetaFile(metaFile *MetaFile, filePath string) error {
 	if _, err := os.Stat(filepath.Join(filePath, metaFile.Name+".meta")); err == nil {
 		return fmt.Errorf("CreateMetaFile(): table already exists: %w", err)

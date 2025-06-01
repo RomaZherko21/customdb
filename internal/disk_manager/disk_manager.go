@@ -43,9 +43,12 @@ func (dm *diskManager) CreateTable(tableName string, columns []meta.Column) erro
 	}, filePath); err != nil {
 		return fmt.Errorf("CreateTable(): meta.CreateMetaFile: %w", err)
 	}
-	if err := data.CreateDataFile(1, tableName, filePath); err != nil {
-		return fmt.Errorf("CreateTable(): data.CreateDataFile: %w", err)
+
+	fc, err := data.NewFileConnection(true, tableName, filePath)
+	if err != nil {
+		return fmt.Errorf("CreateTable(): data.NewFileConnection: %w", err)
 	}
+	defer fc.Close()
 
 	return nil
 }
