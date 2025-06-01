@@ -2,6 +2,7 @@ package data
 
 import (
 	bs "custom-database/internal/disk_manager/binary_serializer"
+	"custom-database/internal/disk_manager/meta"
 	"fmt"
 )
 
@@ -144,4 +145,34 @@ func (fc *fileConnection) deserializePageData(pageID uint32) ([]byte, error) {
 	}
 
 	return pageData, nil
+}
+
+// deserializePageData десериализует данные страницы
+func (fc *fileConnection) deserializeDataRow(pageID uint32, pageSlot *PageSlot, columns []*meta.Column) (*DataRow, error) {
+	start := fc.CalculateDataRowPosition(pageID, pageSlot.Offset)
+	end := start + uint32(pageSlot.Size)
+
+	pageData, err := fc.ReadFileRange(start, end)
+	if err != nil {
+		return nil, fmt.Errorf("DeserializePageHeader(): file.Read: %w", err)
+	}
+
+	offset := meta.NULL_BITMAP_SIZE
+
+	row := make([]DataCell, len(columns))
+	for i, column := range columns {
+		columnValue, columnSize := meta.ConvertValueToType(pageData, offset, column.Type)
+		row[i] = DataCell{
+			Value:  columnValue,
+			Type:   column.Type,
+			IsNull: false,
+		}
+		offset += columnSize
+	}
+
+	return &DataRow{
+		PageId: pageID,
+		SlotId: pageSlot.RowId,
+		Row:    row,
+	}, nil
 }
