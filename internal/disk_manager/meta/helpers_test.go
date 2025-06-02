@@ -19,6 +19,7 @@ func TestCalculateFileSize(t *testing.T) {
 				Columns: []Column{},
 			},
 			want: bs.TEXT_TYPE_HEADER + 4 + // длина имени "test"
+				PAGE_COUNT_SIZE + // размер для количества страниц
 				COLUMN_COUNT_SIZE + // размер для количества колонок
 				NULL_BITMAP_SIZE, // размер для null bitmap
 		},
@@ -31,6 +32,7 @@ func TestCalculateFileSize(t *testing.T) {
 				},
 			},
 			want: bs.TEXT_TYPE_HEADER + 4 + // длина имени "test"
+				PAGE_COUNT_SIZE + // размер для количества страниц
 				COLUMN_COUNT_SIZE + // размер для количества колонок
 				NULL_BITMAP_SIZE + // размер для null bitmap
 				bs.TEXT_TYPE_HEADER + 4 + // длина имени колонки "col1"
@@ -47,6 +49,7 @@ func TestCalculateFileSize(t *testing.T) {
 				},
 			},
 			want: bs.TEXT_TYPE_HEADER + 4 + // длина имени "test"
+				PAGE_COUNT_SIZE + // размер для количества страниц
 				COLUMN_COUNT_SIZE + // размер для количества колонок
 				NULL_BITMAP_SIZE + // размер для null bitmap
 				(bs.TEXT_TYPE_HEADER + 4 + DATA_TYPE_SIZE) + // первая колонка

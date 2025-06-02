@@ -17,7 +17,11 @@ func TestCreateDataFile(t *testing.T) {
 		filename := "test_table"
 
 		// Действие
-		fc, err := NewFileConnection(true, filename, tempDir, []meta.Column{})
+		fc, err := NewFileConnection(&meta.MetaFile{
+			Name:      "test_table",
+			PageCount: 1,
+			Columns:   []meta.Column{},
+		}, tempDir, true)
 		if err != nil {
 			t.Fatalf("Не удалось создать файл: %v", err)
 		}
@@ -54,27 +58,10 @@ func TestCreateDataFile(t *testing.T) {
 		if page.Header.PageId != pageID {
 			t.Errorf("Неверный PageID: получили %d, ожидали %d", page.Header.PageId, pageID)
 		}
-		if page.Header.PageSize != PAGE_SIZE {
-			t.Errorf("Неверный PageSize: получили %d, ожидали %d", page.Header.PageSize, PAGE_SIZE)
+		if page.Header.FreeSpace != DATA_SPACE {
+			t.Errorf("Неверный PageSize: получили %d, ожидали %d", page.Header.FreeSpace, DATA_SPACE)
 		}
 	})
-
-	// t.Run("Попытка создать файл с существующим именем", func(t *testing.T) {
-	// 	// Подготовка
-	// 	filename := "existing_table"
-
-	// 	// Создаем файл перед тестом
-	// 	existingFilePath := filepath.Join(tempDir, filename+".data")
-	// 	file, _ := os.Create(existingFilePath)
-	// 	file.Close()
-
-	// 	// Действие
-	// 	fc, err := NewFileConnection(true, filename, tempDir)
-	// 	if err == nil {
-	// 		t.Fatalf("Не удалось создать файл: %v", err)
-	// 	}
-	// 	fc.Close()
-	// })
 
 	t.Run("Создание файла с нулевым pageID", func(t *testing.T) {
 		// Подготовка
@@ -82,7 +69,11 @@ func TestCreateDataFile(t *testing.T) {
 		filename := "zero_page"
 
 		// Действие
-		fc, err := NewFileConnection(true, filename, tempDir, []meta.Column{})
+		fc, err := NewFileConnection(&meta.MetaFile{
+			Name:      "zero_page",
+			PageCount: 1,
+			Columns:   []meta.Column{},
+		}, tempDir, true)
 		if err != nil {
 			t.Fatalf("Не удалось создать файл: %v", err)
 		}
@@ -119,8 +110,8 @@ func TestCreateDataFile(t *testing.T) {
 		if page.Header.PageId != pageID {
 			t.Errorf("Неверный PageID: получили %d, ожидали %d", page.Header.PageId, pageID)
 		}
-		if page.Header.PageSize != PAGE_SIZE {
-			t.Errorf("Неверный PageSize: получили %d, ожидали %d", page.Header.PageSize, PAGE_SIZE)
+		if page.Header.FreeSpace != DATA_SPACE {
+			t.Errorf("Неверный PageSize: получили %d, ожидали %d", page.Header.FreeSpace, DATA_SPACE)
 		}
 	})
 }

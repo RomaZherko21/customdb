@@ -18,6 +18,7 @@ type Column struct {
 }
 
 type MetaFile struct {
-	Name    string
-	Columns []Column
+	Name      string
+	PageCount uint32
+	Columns   []Column
 }

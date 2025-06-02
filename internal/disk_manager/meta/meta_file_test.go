@@ -12,21 +12,18 @@ import (
 func TestCreateMetaFile(t *testing.T) {
 	t.Run("Create Simple Meta File", func(t *testing.T) {
 		// Подготовка тестовых данных
-		metaFile := &MetaFile{
-			Name: "users",
-			Columns: []Column{
-				{Name: "id", Type: TypeInt32, IsNullable: false},
-				{Name: "name", Type: TypeText, IsNullable: true},
-				{Name: "surname", Type: TypeText, IsNullable: true},
-				{Name: "age", Type: TypeUint32, IsNullable: true},
-				{Name: "height", Type: TypeUint64, IsNullable: true},
-				{Name: "residence", Type: TypeText, IsNullable: false},
-				{Name: "is_admin", Type: TypeBoolean, IsNullable: false},
-			},
+		columns := []Column{
+			{Name: "id", Type: TypeInt32, IsNullable: false},
+			{Name: "name", Type: TypeText, IsNullable: true},
+			{Name: "surname", Type: TypeText, IsNullable: true},
+			{Name: "age", Type: TypeUint32, IsNullable: true},
+			{Name: "height", Type: TypeUint64, IsNullable: true},
+			{Name: "residence", Type: TypeText, IsNullable: false},
+			{Name: "is_admin", Type: TypeBoolean, IsNullable: false},
 		}
 
 		// Создаем файл
-		err := CreateMetaFile(metaFile, "")
+		metaFile, err := CreateMetaFile("users", columns, "")
 		if err != nil {
 			t.Fatalf("Failed to create meta file: %v", err)
 		}
@@ -50,6 +47,12 @@ func TestCreateMetaFile(t *testing.T) {
 		if deserializedMeta.Name != metaFile.Name {
 			t.Errorf("Table name mismatch: got %s, want %s",
 				deserializedMeta.Name, metaFile.Name)
+		}
+
+		// Проверяем количество страниц
+		if deserializedMeta.PageCount != metaFile.PageCount {
+			t.Errorf("Page count mismatch: got %d, want %d",
+				deserializedMeta.PageCount, metaFile.PageCount)
 		}
 
 		// Проверяем количество колонок
@@ -76,12 +79,7 @@ func TestCreateMetaFile(t *testing.T) {
 	})
 
 	t.Run("Meta File with Empty Columns", func(t *testing.T) {
-		metaFile := &MetaFile{
-			Name:    "empty_table",
-			Columns: []Column{},
-		}
-
-		err := CreateMetaFile(metaFile, "")
+		metaFile, err := CreateMetaFile("empty_table", []Column{}, "")
 		if err != nil {
 			t.Fatalf("Failed to create meta file: %v", err)
 		}
@@ -99,6 +97,11 @@ func TestCreateMetaFile(t *testing.T) {
 				deserializedMeta.Name, metaFile.Name)
 		}
 
+		if deserializedMeta.PageCount != metaFile.PageCount {
+			t.Errorf("Page count mismatch: got %d, want %d",
+				deserializedMeta.PageCount, metaFile.PageCount)
+		}
+
 		if len(deserializedMeta.Columns) != 0 {
 			t.Errorf("Expected empty columns, got %d columns",
 				len(deserializedMeta.Columns))
@@ -108,15 +111,12 @@ func TestCreateMetaFile(t *testing.T) {
 	})
 
 	t.Run("Meta File with Long Names", func(t *testing.T) {
-		metaFile := &MetaFile{
-			Name: "very_long_table_name_that_tests_string_serialization",
-			Columns: []Column{
-				{Name: "very_long_column_name_to_test_string_serialization_and_deserialization", Type: TypeInt32},
-				{Name: "another_very_long_column_name_to_ensure_proper_handling_of_long_strings", Type: TypeText},
-			},
+		columns := []Column{
+			{Name: "very_long_column_name_to_test_string_serialization_and_deserialization", Type: TypeInt32},
+			{Name: "another_very_long_column_name_to_ensure_proper_handling_of_long_strings", Type: TypeText},
 		}
 
-		err := CreateMetaFile(metaFile, "")
+		metaFile, err := CreateMetaFile("very_long_table_name_that_tests_string_serialization", columns, "")
 		if err != nil {
 			t.Fatalf("Failed to create meta file: %v", err)
 		}
@@ -146,19 +146,16 @@ func TestCreateMetaFile(t *testing.T) {
 	})
 
 	t.Run("Meta File with All Data Types", func(t *testing.T) {
-		metaFile := &MetaFile{
-			Name: "all_types",
-			Columns: []Column{
-				{Name: "int32_col", Type: TypeInt32},
-				{Name: "int64_col", Type: TypeInt64},
-				{Name: "uint32_col", Type: TypeUint32},
-				{Name: "uint64_col", Type: TypeUint64},
-				{Name: "bool_col", Type: TypeBoolean},
-				{Name: "string_col", Type: TypeText},
-			},
+		columns := []Column{
+			{Name: "int32_col", Type: TypeInt32},
+			{Name: "int64_col", Type: TypeInt64},
+			{Name: "uint32_col", Type: TypeUint32},
+			{Name: "uint64_col", Type: TypeUint64},
+			{Name: "bool_col", Type: TypeBoolean},
+			{Name: "string_col", Type: TypeText},
 		}
 
-		err := CreateMetaFile(metaFile, "")
+		metaFile, err := CreateMetaFile("all_types", columns, "")
 		if err != nil {
 			t.Fatalf("Failed to create meta file: %v", err)
 		}
@@ -191,7 +188,8 @@ func TestCreateMetaFile(t *testing.T) {
 func TestNullableColumns(t *testing.T) {
 	t.Run("Serialize and Deserialize Nullable Columns", func(t *testing.T) {
 		metaFile := &MetaFile{
-			Name: "users",
+			Name:      "users",
+			PageCount: 1,
 			Columns: []Column{
 				{Name: "id", Type: TypeInt32, IsNullable: false},
 				{Name: "name", Type: TypeText, IsNullable: true},
@@ -206,7 +204,7 @@ func TestNullableColumns(t *testing.T) {
 		// Сериализуем
 		data := serializeMetaFile(metaFile)
 
-		offset := bs.TEXT_TYPE_HEADER + len(metaFile.Name) + COLUMN_COUNT_SIZE
+		offset := bs.TEXT_TYPE_HEADER + len(metaFile.Name) + PAGE_COUNT_SIZE + COLUMN_COUNT_SIZE
 		nullBitmap := bs.ReadUint32(data, offset)
 
 		// Проверяем, что нужные биты установлены

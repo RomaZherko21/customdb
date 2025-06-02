@@ -1,6 +1,8 @@
 package data
 
 import (
+	bs "custom-database/internal/disk_manager/binary_serializer"
+	"custom-database/internal/disk_manager/meta"
 	"fmt"
 	"io"
 )
@@ -25,4 +27,20 @@ func (fc *fileConnection) ReadFileRange(start uint32, end uint32) ([]byte, error
 	}
 
 	return result, nil
+}
+
+func CalculateDataRowSize(row []DataCell) uint32 {
+	rowSize := 0
+	for _, cell := range row {
+		if cell.IsNull {
+			continue
+		}
+
+		if cell.Type == meta.TypeText {
+			rowSize += len(cell.Value.(string)) + bs.TEXT_TYPE_HEADER
+		} else {
+			rowSize += meta.СalculateColumnSize(cell.Type)
+		}
+	}
+	return uint32(rowSize)
 }

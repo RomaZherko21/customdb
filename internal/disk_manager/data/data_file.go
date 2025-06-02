@@ -10,13 +10,13 @@ import (
 type fileConnection struct {
 	lastPageID uint32
 	file       *os.File
-	columns    []meta.Column
+	meta       *meta.MetaFile
 }
 
 const INITIAL_PAGE_ID = 1
 
-func NewFileConnection(isNewFile bool, filename string, filePath string, columns []meta.Column) (*fileConnection, error) {
-	filePath = filepath.Join(filePath, filename+".data")
+func NewFileConnection(metaFile *meta.MetaFile, filePath string, isNewFile bool) (*fileConnection, error) {
+	filePath = filepath.Join(filePath, metaFile.Name+".data")
 
 	if isNewFile {
 		fc := &fileConnection{
@@ -37,7 +37,7 @@ func NewFileConnection(isNewFile bool, filename string, filePath string, columns
 	return &fileConnection{
 		lastPageID: INITIAL_PAGE_ID,
 		file:       file,
-		columns:    columns,
+		meta:       metaFile,
 	}, nil
 }
 
@@ -47,6 +47,68 @@ func (fc *fileConnection) Close() error {
 	}
 
 	return fc.file.Close()
+}
+
+func (fc *fileConnection) Insert(row []DataCell) error {
+	pageHeaders, err := fc.deserializeAllPageHeaders(fc.meta.PageCount)
+	if err != nil {
+		return fmt.Errorf("Insert(): deserializeAllPageHeaders: %w", err)
+	}
+
+	rowSize := CalculateDataRowSize(row)
+	currentPageID := uint32(0)
+
+	for _, pageHeader := range pageHeaders {
+		if uint32(pageHeader.FreeSpace) >= rowSize {
+			currentPageID = pageHeader.PageId
+			break
+		}
+	}
+	if currentPageID == 0 {
+		// TODO: handle case when no free space is found
+	}
+
+	serializedRow := fc.serializeDataRow(row)
+
+	slot, err := fc.InsertPageSlot(currentPageID, uint16(rowSize))
+	if err != nil {
+		return fmt.Errorf("Insert(): InsertPageSlot: %w", err)
+	}
+
+	writeDataPosition := slot.Offset
+	fc.file.WriteAt(serializedRow, int64(writeDataPosition))
+
+	return nil
+}
+
+func (fc *fileConnection) InsertPageSlot(pageID uint32, rowSize uint16) (*PageSlot, error) {
+	pageStartingPosition := fc.CalculatePageStartingPosition(pageID)
+
+	slots, err := fc.deserializePageSlots(pageID, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Insert(): deserializePageSlots: %w", err)
+	}
+
+	lastSlotOffset := PAGE_SIZE - rowSize
+	if len(slots) > 0 {
+		lastSlotOffset = slots[len(slots)-1].Offset - rowSize
+	}
+
+	newSlotID := len(slots) + 1
+
+	slot := PageSlot{
+		RowId:     uint16(newSlotID),
+		Offset:    uint16(lastSlotOffset - rowSize),
+		RowSize:   rowSize,
+		IsDeleted: false,
+	}
+
+	serializedSlot := fc.serializePageSlots([]PageSlot{slot})
+
+	writeSlotPosition := pageStartingPosition + PAGE_HEADER_SIZE + uint32(len(slots)*ONE_SLOT_SIZE)
+	fc.file.WriteAt(serializedSlot, int64(writeSlotPosition))
+
+	return &slot, nil
 }
 
 func (fc *fileConnection) createDataFile(filePath string) error {
@@ -74,8 +136,8 @@ func (fc *fileConnection) createDataFile(filePath string) error {
 func (fc *fileConnection) newPage(pageID uint32) *Page {
 	return &Page{
 		Header: PageHeader{
-			PageId:   pageID,
-			PageSize: PAGE_SIZE,
+			PageId:    pageID,
+			FreeSpace: DATA_SPACE,
 		},
 		Slots: make([]PageSlot, MAX_SLOTS),
 		Data:  make([]DataRow, 0),

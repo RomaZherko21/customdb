@@ -9,14 +9,16 @@ import (
 	helpers "custom-database/internal/disk_manager/helpers"
 )
 
-func CreateMetaFile(metaFile *MetaFile, filePath string) error {
+func CreateMetaFile(name string, columns []Column, filePath string) (*MetaFile, error) {
+	metaFile := newMetaFile(name, columns)
+
 	if _, err := os.Stat(filepath.Join(filePath, metaFile.Name+".meta")); err == nil {
-		return fmt.Errorf("CreateMetaFile(): table already exists: %w", err)
+		return nil, fmt.Errorf("CreateMetaFile(): table already exists: %w", err)
 	}
 
 	file, err := os.Create(filepath.Join(filePath, metaFile.Name+".meta"))
 	if err != nil {
-		return fmt.Errorf("CreateMetaFile(): os.Create: %w", err)
+		return nil, fmt.Errorf("CreateMetaFile(): os.Create: %w", err)
 	}
 	defer file.Close()
 
@@ -24,10 +26,18 @@ func CreateMetaFile(metaFile *MetaFile, filePath string) error {
 
 	_, err = file.Write(data)
 	if err != nil {
-		return fmt.Errorf("CreateMetaFile(): file.Write: %w", err)
+		return nil, fmt.Errorf("CreateMetaFile(): file.Write: %w", err)
 	}
 
-	return nil
+	return metaFile, nil
+}
+
+func newMetaFile(name string, columns []Column) *MetaFile {
+	return &MetaFile{
+		Name:      name,
+		PageCount: 1,
+		Columns:   columns,
+	}
 }
 
 // serializePage преобразует Page в []byte для записи на диск
@@ -38,11 +48,15 @@ func serializeMetaFile(metaFile *MetaFile) []byte {
 	// 1. Сериализуем имя таблицы
 	offset := bs.WriteString(buffer, 0, metaFile.Name)
 
-	// 2. Сериализуем количество колонок
+	// 2. Сериализуем количество страниц
+	bs.WriteUint32(buffer, offset, metaFile.PageCount)
+	offset += PAGE_COUNT_SIZE
+
+	// 3. Сериализуем количество колонок
 	bs.WriteUint8(buffer, offset, uint8(len(metaFile.Columns)))
 	offset += COLUMN_COUNT_SIZE
 
-	// 3. Сериализуем null nullBitmap
+	// 4. Сериализуем null nullBitmap
 	nullBitmap := uint32(0)
 	for i := 0; i < len(metaFile.Columns); i++ {
 		if metaFile.Columns[i].IsNullable {
@@ -54,7 +68,7 @@ func serializeMetaFile(metaFile *MetaFile) []byte {
 	bs.WriteUint32(buffer, offset, nullBitmap)
 	offset += NULL_BITMAP_SIZE
 
-	// 4. Сериализуем каждую колонку
+	// 5. Сериализуем каждую колонку
 	for _, column := range metaFile.Columns {
 		// [N байт] имя колонки
 		offset += bs.WriteString(buffer, offset, column.Name)
@@ -72,16 +86,20 @@ func deserializeMetaFile(data []byte) *MetaFile {
 	fileName, offset := bs.ReadString(data, 0)
 	metaFile.Name = fileName
 
-	// 2. Читаем количество колонок
+	// 2. Читаем количество страниц
+	metaFile.PageCount = bs.ReadUint32(data, offset)
+	offset += PAGE_COUNT_SIZE
+
+	// 3. Читаем количество колонок
 	columnsCount := bs.ReadUint8(data, offset)
 	metaFile.Columns = make([]Column, columnsCount)
 	offset += COLUMN_COUNT_SIZE
 
-	// 3. Читаем bitmap для nullable колонок
+	// 4. Читаем bitmap для nullable колонок
 	nullBitmap := bs.ReadUint32(data, offset)
 	offset += NULL_BITMAP_SIZE
 
-	// 4. Читаем информацию о колонках
+	// 5. Читаем информацию о колонках
 	for i := 0; i < len(metaFile.Columns); i++ {
 		columnName, columnNameOffset := bs.ReadString(data, offset)
 

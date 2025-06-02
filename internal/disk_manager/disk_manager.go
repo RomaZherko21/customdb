@@ -37,14 +37,12 @@ func (dm *diskManager) CreateTable(tableName string, columns []meta.Column) erro
 		return fmt.Errorf("CreateTable(): os.MkdirAll: %w", err)
 	}
 
-	if err := meta.CreateMetaFile(&meta.MetaFile{
-		Name:    tableName,
-		Columns: columns,
-	}, filePath); err != nil {
+	metaFile, err := meta.CreateMetaFile(tableName, columns, filePath)
+	if err != nil {
 		return fmt.Errorf("CreateTable(): meta.CreateMetaFile: %w", err)
 	}
 
-	fc, err := data.NewFileConnection(true, tableName, filePath, columns)
+	fc, err := data.NewFileConnection(metaFile, filePath, true)
 	if err != nil {
 		return fmt.Errorf("CreateTable(): data.NewFileConnection: %w", err)
 	}

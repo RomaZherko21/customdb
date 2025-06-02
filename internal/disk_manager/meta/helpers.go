@@ -11,12 +11,13 @@ func calculateFileSize(metaFile *MetaFile) int {
 	}
 
 	return bs.TEXT_TYPE_HEADER + len(metaFile.Name) +
+		PAGE_COUNT_SIZE + // количество страниц в uint32
 		COLUMN_COUNT_SIZE + // количество колонок в uint8
 		NULL_BITMAP_SIZE + // null_bitmap size в uint32
 		columnSize
 }
 
-func calculateColumnSize(columnType ColumnType) int {
+func СalculateColumnSize(columnType ColumnType) int {
 	switch columnType {
 	case TypeInt32:
 		return 4
@@ -38,15 +39,15 @@ func calculateColumnSize(columnType ColumnType) int {
 func ConvertValueToType(data []byte, offset int, columnType ColumnType) (interface{}, int) {
 	switch columnType {
 	case TypeInt32:
-		return bs.ReadInt32(data, offset), calculateColumnSize(columnType)
+		return bs.ReadInt32(data, offset), СalculateColumnSize(columnType)
 	case TypeInt64:
-		return bs.ReadInt64(data, offset), calculateColumnSize(columnType)
+		return bs.ReadInt64(data, offset), СalculateColumnSize(columnType)
 	case TypeUint32:
-		return bs.ReadUint32(data, offset), calculateColumnSize(columnType)
+		return bs.ReadUint32(data, offset), СalculateColumnSize(columnType)
 	case TypeUint64:
-		return bs.ReadUint64(data, offset), calculateColumnSize(columnType)
+		return bs.ReadUint64(data, offset), СalculateColumnSize(columnType)
 	case TypeBoolean:
-		return bs.ReadBool(data, offset), calculateColumnSize(columnType)
+		return bs.ReadBool(data, offset), СalculateColumnSize(columnType)
 	case TypeText:
 		return bs.ReadString(data, offset)
 	}
