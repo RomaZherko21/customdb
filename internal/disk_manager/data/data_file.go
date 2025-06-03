@@ -49,10 +49,15 @@ func (fc *fileConnection) Close() error {
 	return fc.file.Close()
 }
 
-func (fc *fileConnection) Insert(row []DataCell) error {
+type InsertRowResult struct {
+	SlotID uint16
+	PageID uint32
+}
+
+func (fc *fileConnection) InsertDataRow(row []DataCell) (*InsertRowResult, error) {
 	pageHeaders, err := fc.deserializeAllPageHeaders(fc.meta.PageCount)
 	if err != nil {
-		return fmt.Errorf("Insert(): deserializeAllPageHeaders: %w", err)
+		return nil, fmt.Errorf("Insert(): deserializeAllPageHeaders: %w", err)
 	}
 
 	rowSize := CalculateDataRowSize(row)
@@ -72,13 +77,16 @@ func (fc *fileConnection) Insert(row []DataCell) error {
 
 	slot, err := fc.InsertPageSlot(currentPageID, uint16(rowSize))
 	if err != nil {
-		return fmt.Errorf("Insert(): InsertPageSlot: %w", err)
+		return nil, fmt.Errorf("Insert(): InsertPageSlot: %w", err)
 	}
 
 	writeDataPosition := slot.Offset
-	fc.file.WriteAt(serializedRow, int64(writeDataPosition))
+	_, err = fc.file.WriteAt(serializedRow, int64(writeDataPosition))
+	if err != nil {
+		return nil, fmt.Errorf("Insert(): file.WriteAt: %w", err)
+	}
 
-	return nil
+	return &InsertRowResult{SlotID: slot.SlotId, PageID: currentPageID}, nil
 }
 
 func (fc *fileConnection) InsertPageSlot(pageID uint32, rowSize uint16) (*PageSlot, error) {
@@ -97,7 +105,7 @@ func (fc *fileConnection) InsertPageSlot(pageID uint32, rowSize uint16) (*PageSl
 	newSlotID := len(slots) + 1
 
 	slot := PageSlot{
-		RowId:     uint16(newSlotID),
+		SlotId:    uint16(newSlotID),
 		Offset:    uint16(lastSlotOffset - rowSize),
 		RowSize:   rowSize,
 		IsDeleted: false,

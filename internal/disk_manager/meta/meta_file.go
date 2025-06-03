@@ -2,6 +2,7 @@ package meta
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -9,8 +10,8 @@ import (
 	helpers "custom-database/internal/disk_manager/helpers"
 )
 
-func CreateMetaFile(name string, columns []Column, filePath string) (*MetaFile, error) {
-	metaFile := newMetaFile(name, columns)
+func CreateMetaFile(tableName string, columns []Column, filePath string) (*MetaFile, error) {
+	metaFile := newMetaFile(tableName, columns)
 
 	if _, err := os.Stat(filepath.Join(filePath, metaFile.Name+".meta")); err == nil {
 		return nil, fmt.Errorf("CreateMetaFile(): table already exists: %w", err)
@@ -30,6 +31,21 @@ func CreateMetaFile(name string, columns []Column, filePath string) (*MetaFile, 
 	}
 
 	return metaFile, nil
+}
+
+func LoadMetaFile(tableName string, filePath string) (*MetaFile, error) {
+	file, err := os.Open(filepath.Join(filePath, tableName+".meta"))
+	if err != nil {
+		return nil, fmt.Errorf("LoadMetaFile(): os.Open: %w", err)
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return nil, fmt.Errorf("LoadMetaFile(): io.ReadAll: %w", err)
+	}
+
+	return deserializeMetaFile(data), nil
 }
 
 func newMetaFile(name string, columns []Column) *MetaFile {

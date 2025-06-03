@@ -9,8 +9,16 @@ import (
 	"path/filepath"
 )
 
+type InsertRowResult struct {
+	SlotID uint16
+	PageID uint32
+}
+
 type DiskManagerService interface {
-	CreateTable(filename string, columns []meta.Column) error
+	CreateTable(tableName string, columns []meta.Column) error
+	InsertDataRow(tableName string, row []data.DataCell) (*InsertRowResult, error)
+	ReadDataRow(tableName string, slotID uint16, pageID uint32) (*data.DataRow, error)
+	DeleteDataRow(tableName string, slotID uint16, pageID uint32) error
 }
 
 type diskManager struct {
@@ -47,6 +55,48 @@ func (dm *diskManager) CreateTable(tableName string, columns []meta.Column) erro
 		return fmt.Errorf("CreateTable(): data.NewFileConnection: %w", err)
 	}
 	defer fc.Close()
+
+	return nil
+}
+
+func (dm *diskManager) InsertDataRow(tableName string, row []data.DataCell) (*InsertRowResult, error) {
+	if err := dm.checkTableExists(tableName); err != nil {
+		return nil, fmt.Errorf("InsertDataRow(): checkTableExists: %w", err)
+	}
+
+	filePath := filepath.Join(dm.cfg.DBPath, tableName)
+	metaFile, err := meta.LoadMetaFile(tableName, filePath)
+	if err != nil {
+		return nil, fmt.Errorf("InsertDataRow(): meta.LoadMetaFile: %w", err)
+	}
+
+	fc, err := data.NewFileConnection(metaFile, filePath, false)
+	if err != nil {
+		return nil, fmt.Errorf("CreateTable(): data.NewFileConnection: %w", err)
+	}
+	defer fc.Close()
+
+	result, err := fc.InsertDataRow(row)
+	if err != nil {
+		return nil, fmt.Errorf("InsertDataRow(): fc.InsertDataRow: %w", err)
+	}
+
+	return &InsertRowResult{SlotID: result.SlotID, PageID: result.PageID}, nil
+}
+
+func (dm *diskManager) ReadDataRow(tableName string, slotID uint16, pageID uint32) (*data.DataRow, error) {
+	return nil, nil
+}
+
+func (dm *diskManager) DeleteDataRow(tableName string, slotID uint16, pageID uint32) error {
+	return nil
+}
+
+func (dm *diskManager) checkTableExists(tableName string) error {
+	filePath := filepath.Join(dm.cfg.DBPath, tableName)
+	if _, err := os.Stat(filePath); err != nil {
+		return fmt.Errorf("checkTableExists(): table not found: %w", err)
+	}
 
 	return nil
 }

@@ -60,7 +60,7 @@ func (fc *fileConnection) deserializePageHeader(pageID uint32) (*PageHeader, err
 
 	pageData, err := fc.ReadFileRange(pageStartingPosition, pageStartingPosition+PAGE_HEADER_SIZE)
 	if err != nil {
-		return nil, fmt.Errorf("DeserializePageHeader(): file.Read: %w", err)
+		return nil, fmt.Errorf("deserializePageHeader(): fc.ReadFileRange: %w", err)
 	}
 
 	pageHeader := &PageHeader{}
@@ -81,7 +81,7 @@ func (fc *fileConnection) serializePageSlots(pageSlots []PageSlot) []byte {
 
 	for i, slot := range pageSlots {
 		offset := i * ONE_SLOT_SIZE
-		bs.WriteUint16(buffer, offset, slot.RowId)
+		bs.WriteUint16(buffer, offset, slot.SlotId)
 		bs.WriteUint16(buffer, offset+SLOT_ROW_ID_SIZE, slot.Offset)
 		bs.WriteUint16(buffer, offset+SLOT_ROW_ID_SIZE+SLOT_OFFSET_SIZE, slot.RowSize)
 		bs.WriteBool(buffer, offset+SLOT_ROW_ID_SIZE+SLOT_OFFSET_SIZE+SLOT_SIZE_SIZE, slot.IsDeleted)
@@ -119,7 +119,7 @@ func (fc *fileConnection) deserializePageSlots(pageID uint32, interval *interval
 		// Если rowID != 0, значит слот содержит данные
 		if rowID != 0 {
 			slot := &PageSlot{
-				RowId:     rowID,
+				SlotId:    rowID,
 				Offset:    bs.ReadUint16(pageData, offset+SLOT_ROW_ID_SIZE),
 				RowSize:   bs.ReadUint16(pageData, offset+SLOT_ROW_ID_SIZE+SLOT_OFFSET_SIZE),
 				IsDeleted: bs.ReadBool(pageData, offset+SLOT_ROW_ID_SIZE+SLOT_OFFSET_SIZE+SLOT_SIZE_SIZE),
@@ -139,7 +139,7 @@ func (fc *fileConnection) serializePageData(pageData []DataRow) []byte {
 		buffer = append(buffer, fc.serializeDataRow(row.Row)...)
 	}
 
-	return []byte{}
+	return buffer
 }
 
 // deserializePageData десериализует данные страницы
@@ -151,7 +151,7 @@ func (fc *fileConnection) deserializePageData(pageID uint32) ([]DataRow, error) 
 
 	result := make([]DataRow, 0)
 	for _, slot := range slots {
-		if slot.RowId != 0 {
+		if slot.SlotId != 0 {
 			row, err := fc.deserializeDataRow(pageID, &slot)
 			if err != nil {
 				return nil, fmt.Errorf("DeserializePageData(): deserializeDataRow: %w", err)
@@ -165,7 +165,8 @@ func (fc *fileConnection) deserializePageData(pageID uint32) ([]DataRow, error) 
 
 // serializeDataRow сериализует данные строки
 func (fc *fileConnection) serializeDataRow(dataRow []DataCell) []byte {
-	buffer := make([]byte, 0)
+	rowSize := CalculateDataRowSize(dataRow)
+	buffer := make([]byte, rowSize)
 
 	nullBitmap := uint32(0)
 	for i, cell := range dataRow {
@@ -226,7 +227,7 @@ func (fc *fileConnection) deserializeDataRow(pageID uint32, pageSlot *PageSlot) 
 
 	return &DataRow{
 		PageId: pageID,
-		SlotId: pageSlot.RowId,
+		SlotId: pageSlot.SlotId,
 		Row:    row,
 	}, nil
 }

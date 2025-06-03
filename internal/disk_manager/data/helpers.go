@@ -23,14 +23,15 @@ func (fc *fileConnection) ReadFileRange(start uint32, end uint32) ([]byte, error
 	result := make([]byte, end-start)
 	_, err := fc.file.Read(result)
 	if err != nil {
-		return nil, fmt.Errorf("ReadFileRange(): file.Read: %w", err)
+		return nil, fmt.Errorf("ReadFileRange(): file.Read in range %d-%d: %w", start, end, err)
 	}
 
 	return result, nil
 }
 
 func CalculateDataRowSize(row []DataCell) uint32 {
-	rowSize := 0
+	rowSize := meta.NULL_BITMAP_SIZE
+
 	for _, cell := range row {
 		if cell.IsNull {
 			continue

@@ -8,7 +8,7 @@ type PageHeader struct {
 }
 
 type PageSlot struct {
-	RowId     uint16
+	SlotId    uint16
 	RowSize   uint16
 	Offset    uint16
 	IsDeleted bool
