@@ -183,8 +183,8 @@ func (fc *fileConnection) serializeDataRow(dataRow []DataCell) []byte {
 			continue
 		}
 
-		byteValue := meta.ConvertValueToBuffer(offset, cell.Type, cell.Value)
-		buffer = append(buffer, byteValue...)
+		byteValue := meta.ConvertValueToBuffer(cell.Type, cell.Value)
+		copy(buffer[offset:], byteValue)
 		offset += len(byteValue)
 	}
 

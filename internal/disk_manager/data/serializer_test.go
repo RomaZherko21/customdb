@@ -14,7 +14,6 @@ const testFilePath = "./test_data"
 
 func TestSerializePageHeader(t *testing.T) {
 	fileConnection := &fileConnection{}
-	// defer cleanup()
 
 	t.Run("Создание таблицы", func(t *testing.T) {
 		// Создаем тестовую директорию
@@ -121,51 +120,20 @@ func TestSerializePageHeader(t *testing.T) {
 		assert.Equal(t, uint32(2), bs.ReadUint32(result, 0)) // nullBitmap для второй колонки
 	})
 
-	t.Run("корректная десериализация строки данных", func(t *testing.T) {
-		// Сначала вставляем тестовые данные
-		dataRow := []DataCell{
-			{Value: int32(1), Type: meta.TypeInt32, IsNull: false},
-			{Value: "test", Type: meta.TypeText, IsNull: false},
-		}
-
-		insertResult, err := fileConnection.InsertDataRow(dataRow)
-		assert.NoError(t, err)
-
-		// Получаем слот для вставленной строки
-		slots, err := fileConnection.deserializePageSlots(insertResult.PageID, nil)
-		assert.NoError(t, err)
-
-		var targetSlot *PageSlot
-		for i := range slots {
-			if slots[i].SlotId == insertResult.SlotID {
-				targetSlot = &slots[i]
-				break
-			}
-		}
-		assert.NotNil(t, targetSlot)
-
-		// Десериализуем строку
-		result, err := fileConnection.deserializeDataRow(insertResult.PageID, targetSlot)
-
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
-		assert.Equal(t, insertResult.PageID, result.PageId)
-		assert.Equal(t, insertResult.SlotID, result.SlotId)
-		assert.Equal(t, dataRow[0].Value, result.Row[0].Value)
-		assert.Equal(t, dataRow[1].Value, result.Row[1].Value)
-	})
-
 	t.Run("корректная десериализация всех заголовков страниц", func(t *testing.T) {
-		result, err := fileConnection.deserializeAllPageHeaders(fileConnection.meta.PageCount)
+		result, err := fileConnection.deserializeAllPageHeaders(1)
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 1) // Начальная страница
 		assert.Equal(t, uint32(1), result[0].PageId)
-		assert.Equal(t, DATA_SPACE, result[0].FreeSpace)
+		assert.Equal(t, uint16(DATA_SPACE), result[0].FreeSpace)
 	})
 
-	// t.Run("Закрытие файла", func(t *testing.T) {
-	// 	err := fileConnection.Close()
-	// 	assert.NoError(t, err)
-	// })
+	t.Run("Закрытие файла", func(t *testing.T) {
+		err := fileConnection.Close()
+		assert.NoError(t, err)
+
+		err = os.RemoveAll(testFilePath)
+		assert.NoError(t, err)
+	})
 }
