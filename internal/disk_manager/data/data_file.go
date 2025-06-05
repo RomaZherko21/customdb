@@ -70,7 +70,7 @@ func (fc *fileConnection) InsertDataRow(row []DataCell) (*InsertRowResult, error
 		}
 	}
 	if currentPageID == 0 {
-		// TODO: handle case when no free space is found
+		// TODO: handle case when no free space is found, and we need a new page
 	}
 
 	serializedRow := fc.serializeDataRow(row)

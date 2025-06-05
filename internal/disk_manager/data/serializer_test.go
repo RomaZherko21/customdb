@@ -89,14 +89,32 @@ func TestSerializePageHeader(t *testing.T) {
 				PageId: 1,
 				SlotId: 1,
 				Row: []DataCell{
-					{Value: int32(1), Type: meta.TypeInt32, IsNull: false},
-					{Value: "test", Type: meta.TypeText, IsNull: false},
+					{Value: int32(111), Type: meta.TypeInt32, IsNull: false},
+					{Value: "test111", Type: meta.TypeText, IsNull: false},
+				},
+			},
+			{
+				PageId: 1,
+				SlotId: 2,
+				Row: []DataCell{
+					{Value: int32(222), Type: meta.TypeInt32, IsNull: false},
+					{Value: "test222", Type: meta.TypeText, IsNull: false},
 				},
 			},
 		}
 
+		row1Size := int(CalculateDataRowSize(pageData[0].Row))
+
 		result := fileConnection.serializePageData(pageData)
 		assert.NotEmpty(t, result)
+
+		assert.Equal(t, int32(111), bs.ReadInt32(result, meta.NULL_BITMAP_SIZE))
+		assert.Equal(t, int32(222), bs.ReadInt32(result, row1Size+meta.NULL_BITMAP_SIZE))
+
+		row1, _ := bs.ReadString(result, meta.NULL_BITMAP_SIZE+4)
+		row2, _ := bs.ReadString(result, row1Size+meta.NULL_BITMAP_SIZE+4)
+		assert.Equal(t, "test111", row1)
+		assert.Equal(t, "test222", row2)
 	})
 
 	t.Run("корректная десериализация данных страницы", func(t *testing.T) {
