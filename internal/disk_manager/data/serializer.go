@@ -3,80 +3,43 @@ package data
 import (
 	bs "custom-database/internal/disk_manager/binary_serializer"
 	"custom-database/internal/disk_manager/helpers"
-	"custom-database/internal/disk_manager/meta"
 	"fmt"
 )
 
 // serializePage преобразует Page в []byte для записи на диск
-func (fc *fileConnection) serializePage(page *Page) []byte {
+func serializePage(page *Page) []byte {
 	buffer := make([]byte, PAGE_SIZE)
 
-	copy(buffer, fc.serializePageHeader(&page.Header))
+	copy(buffer, serializePageHeader(&page.Header))
 
-	copy(buffer[PAGE_HEADER_SIZE:], fc.serializePageSlots(page.Slots))
-
-	copy(buffer[PAGE_HEADER_SIZE+SLOTS_SPACE:], fc.serializePageData(page.Data))
+	copy(buffer[PAGE_HEADER_SIZE:], serializePageSlots(page.Slots))
 
 	return buffer
 }
 
-// deserializePage восстанавливает Page из файла
-func (fc *fileConnection) deserializePage(pageID uint32) *Page {
-	pageHeader, err := fc.deserializePageHeader(pageID)
-	if err != nil {
-		return nil
-	}
-
-	slots, err := fc.deserializePageSlots(pageID, nil)
-	if err != nil {
-		return nil
-	}
-
-	dataRows, err := fc.deserializePageData(pageID)
-	if err != nil {
-		return nil
-	}
-
-	return &Page{
-		Header: *pageHeader,
-		Slots:  slots,
-		Data:   dataRows,
-	}
-}
-
 // serializePageHeader сериализует заголовок страницы
-func (fc *fileConnection) serializePageHeader(pageHeader *PageHeader) []byte {
+func serializePageHeader(pageHeader *PageHeader) []byte {
 	buffer := make([]byte, PAGE_HEADER_SIZE)
 
 	bs.WriteUint32(buffer, 0, pageHeader.PageId)
 	bs.WriteUint16(buffer, PAGE_ID_SIZE, pageHeader.FreeSpace)
+	bs.WriteUint16(buffer, PAGE_ID_SIZE+PAGE_SLOTS_AMOUNT_SIZE, pageHeader.SlotsAmount)
 
 	return buffer
 }
 
 // deserializePageHeader десериализует заголовок страницы
-func (fc *fileConnection) deserializePageHeader(pageID uint32) (*PageHeader, error) {
-	pageStartingPosition := fc.CalculatePageStartingPosition(pageID)
-
-	pageData, err := fc.ReadFileRange(pageStartingPosition, pageStartingPosition+PAGE_HEADER_SIZE)
-	if err != nil {
-		return nil, fmt.Errorf("deserializePageHeader(): fc.ReadFileRange: %w", err)
-	}
-
+func deserializePageHeader(pageData []byte) (*PageHeader, error) {
 	pageHeader := &PageHeader{}
 	pageHeader.PageId = bs.ReadUint32(pageData, 0)
 	pageHeader.FreeSpace = bs.ReadUint16(pageData, PAGE_ID_SIZE)
+	pageHeader.SlotsAmount = bs.ReadUint16(pageData, PAGE_ID_SIZE+PAGE_SLOTS_AMOUNT_SIZE)
 
 	return pageHeader, nil
 }
 
-type interval struct {
-	start uint32
-	end   uint32
-}
-
 // serializePageSlots сериализует слоты страницы
-func (fc *fileConnection) serializePageSlots(pageSlots []PageSlot) []byte {
+func serializePageSlots(pageSlots []PageSlot) []byte {
 	buffer := make([]byte, len(pageSlots)*ONE_SLOT_SIZE)
 
 	for i, slot := range pageSlots {
@@ -91,80 +54,34 @@ func (fc *fileConnection) serializePageSlots(pageSlots []PageSlot) []byte {
 }
 
 // deserializePageSlots десериализует слоты страницы
-func (fc *fileConnection) deserializePageSlots(pageID uint32, interval *interval) ([]PageSlot, error) {
-	pageStartingPosition := fc.CalculatePageStartingPosition(pageID)
-
-	start := pageStartingPosition + PAGE_HEADER_SIZE
-	end := pageStartingPosition + PAGE_HEADER_SIZE + SLOTS_SPACE
-
-	if interval != nil {
-		start = interval.start
-		end = interval.end
+func deserializePageSlots(data []byte) ([]PageSlot, error) {
+	if len(data)%ONE_SLOT_SIZE != 0 {
+		return nil, fmt.Errorf("DeserializePageSlots(): data length is not divisible by ONE_SLOT_SIZE")
 	}
 
-	if (end-start)%ONE_SLOT_SIZE != 0 {
-		return nil, fmt.Errorf("DeserializePageSlots(): end - start is not divisible by ONE_SLOT_SIZE")
-	}
-	slotsAmount := (end - start) / ONE_SLOT_SIZE
+	slotsAmount := len(data) / ONE_SLOT_SIZE
+	slots := make([]PageSlot, 0)
 
-	pageData, err := fc.ReadFileRange(start, end)
-	if err != nil {
-		return nil, fmt.Errorf("DeserializePageSlots(): file.Read: %w", err)
-	}
-
-	slots := make([]PageSlot, slotsAmount)
-	for i := 0; i < int(slotsAmount); i++ {
+	for i := 0; i < slotsAmount; i++ {
 		offset := i * ONE_SLOT_SIZE
-		rowID := bs.ReadUint16(pageData, offset)
+		rowID := bs.ReadUint16(data, offset)
 		// Если rowID != 0, значит слот содержит данные
 		if rowID != 0 {
 			slot := &PageSlot{
 				SlotId:    rowID,
-				Offset:    bs.ReadUint16(pageData, offset+SLOT_ROW_ID_SIZE),
-				RowSize:   bs.ReadUint16(pageData, offset+SLOT_ROW_ID_SIZE+SLOT_OFFSET_SIZE),
-				IsDeleted: bs.ReadBool(pageData, offset+SLOT_ROW_ID_SIZE+SLOT_OFFSET_SIZE+SLOT_SIZE_SIZE),
+				Offset:    bs.ReadUint16(data, offset+SLOT_ROW_ID_SIZE),
+				RowSize:   bs.ReadUint16(data, offset+SLOT_ROW_ID_SIZE+SLOT_OFFSET_SIZE),
+				IsDeleted: bs.ReadBool(data, offset+SLOT_ROW_ID_SIZE+SLOT_OFFSET_SIZE+SLOT_SIZE_SIZE),
 			}
-			slots[i] = *slot
+			slots = append(slots, *slot)
 		}
 	}
 
 	return slots, nil
 }
 
-// serializePageData сериализует данные страницы
-func (fc *fileConnection) serializePageData(pageData []DataRow) []byte {
-	buffer := make([]byte, 0)
-
-	for _, row := range pageData {
-		buffer = append(buffer, fc.serializeDataRow(row.Row)...)
-	}
-
-	return buffer
-}
-
-// deserializePageData десериализует данные страницы
-func (fc *fileConnection) deserializePageData(pageID uint32) ([]DataRow, error) {
-	slots, err := fc.deserializePageSlots(pageID, nil)
-	if err != nil {
-		return nil, fmt.Errorf("DeserializePageData(): deserializePageSlots: %w", err)
-	}
-
-	result := make([]DataRow, 0)
-	for _, slot := range slots {
-		if slot.SlotId != 0 {
-			row, err := fc.deserializeDataRow(pageID, &slot)
-			if err != nil {
-				return nil, fmt.Errorf("DeserializePageData(): deserializeDataRow: %w", err)
-			}
-			result = append(result, *row)
-		}
-	}
-
-	return result, nil
-}
-
 // serializeDataRow сериализует данные строки
-func (fc *fileConnection) serializeDataRow(dataRow []DataCell) []byte {
+func serializeDataRow(dataRow []DataCell) []byte {
 	rowSize := CalculateDataRowSize(dataRow)
 	buffer := make([]byte, rowSize)
 
@@ -176,14 +93,14 @@ func (fc *fileConnection) serializeDataRow(dataRow []DataCell) []byte {
 	}
 
 	bs.WriteUint32(buffer, 0, nullBitmap)
-	offset := meta.NULL_BITMAP_SIZE
+	offset := NULL_BITMAP_SIZE
 
 	for _, cell := range dataRow {
 		if cell.IsNull {
 			continue
 		}
 
-		byteValue := meta.ConvertValueToBuffer(cell.Type, cell.Value)
+		byteValue := ConvertValueToBuffer(cell.Type, cell.Value)
 		copy(buffer[offset:], byteValue)
 		offset += len(byteValue)
 	}
@@ -192,20 +109,12 @@ func (fc *fileConnection) serializeDataRow(dataRow []DataCell) []byte {
 }
 
 // deserializePageData десериализует данные страницы
-func (fc *fileConnection) deserializeDataRow(pageID uint32, pageSlot *PageSlot) (*DataRow, error) {
-	start := fc.CalculateDataRowPosition(pageID, pageSlot.Offset)
-	end := start + uint32(pageSlot.RowSize)
+func deserializeDataRow(dataRow []byte, columns []Column) ([]DataCell, error) {
+	nullBitmap := bs.ReadUint32(dataRow, 0)
+	offset := NULL_BITMAP_SIZE
 
-	pageData, err := fc.ReadFileRange(start, end)
-	if err != nil {
-		return nil, fmt.Errorf("DeserializePageHeader(): file.Read: %w", err)
-	}
-
-	nullBitmap := bs.ReadUint32(pageData, 0)
-	offset := meta.NULL_BITMAP_SIZE
-
-	row := make([]DataCell, len(fc.meta.Columns))
-	for i, column := range fc.meta.Columns {
+	row := make([]DataCell, len(columns))
+	for i, column := range columns {
 		// Если колонка nullable и в nullBitmap на этой позиции стоит 1, то значение null
 		if column.IsNullable && helpers.GetBit(nullBitmap, i) {
 			row[i] = DataCell{
@@ -216,7 +125,7 @@ func (fc *fileConnection) deserializeDataRow(pageID uint32, pageSlot *PageSlot) 
 			continue
 		}
 
-		columnValue, columnSize := meta.ConvertValueToType(pageData, offset, column.Type)
+		columnValue, columnSize := ConvertValueToType(dataRow, offset, column.Type)
 		row[i] = DataCell{
 			Value:  columnValue,
 			Type:   column.Type,
@@ -225,23 +134,5 @@ func (fc *fileConnection) deserializeDataRow(pageID uint32, pageSlot *PageSlot) 
 		offset += columnSize
 	}
 
-	return &DataRow{
-		PageId: pageID,
-		SlotId: pageSlot.SlotId,
-		Row:    row,
-	}, nil
-}
-
-func (fc *fileConnection) deserializeAllPageHeaders(pageCount uint32) ([]*PageHeader, error) {
-	result := make([]*PageHeader, 0)
-
-	for i := INITIAL_PAGE_ID; i <= int(pageCount); i++ {
-		pageHeader, err := fc.deserializePageHeader(uint32(i))
-		if err != nil {
-			return nil, fmt.Errorf("DeserializePagesHeader(): deserializePageHeader: %w", err)
-		}
-		result = append(result, pageHeader)
-	}
-
-	return result, nil
+	return row, nil
 }

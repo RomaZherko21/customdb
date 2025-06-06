@@ -1,10 +1,9 @@
 package data
 
-import "custom-database/internal/disk_manager/meta"
-
 type PageHeader struct {
-	PageId    uint32
-	FreeSpace uint16
+	PageId      uint32
+	FreeSpace   uint16
+	SlotsAmount uint16
 }
 
 type PageSlot struct {
@@ -22,7 +21,7 @@ type Page struct {
 
 type DataCell struct {
 	Value  interface{}
-	Type   meta.ColumnType
+	Type   ColumnType
 	IsNull bool
 }
 
@@ -30,4 +29,29 @@ type DataRow struct {
 	PageId uint32
 	SlotId uint16
 	Row    []DataCell
+}
+
+// Meta data
+
+type ColumnType uint8
+
+const (
+	TypeInt32 ColumnType = iota
+	TypeInt64
+	TypeUint32
+	TypeUint64
+	TypeBoolean
+	TypeText
+)
+
+type Column struct {
+	Name       string
+	Type       ColumnType
+	IsNullable bool
+}
+
+type MetaData struct {
+	Name      string
+	PageCount uint32
+	Columns   []Column
 }
